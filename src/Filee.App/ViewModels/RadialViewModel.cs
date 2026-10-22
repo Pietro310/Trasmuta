@@ -25,6 +25,15 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
     [ObservableProperty] private double _holeRatio = 0.42;
     [ObservableProperty] private double _sliceOpacity = 0.96;
 
+    /// <summary>Menu style (Settings → Theme → Menu style).</summary>
+    [ObservableProperty] private MenuLayout _layout;
+
+    /// <summary>
+    /// Most presets (and most presets in one group) this menu may show, to place the window before it is filled: a
+    /// drag places it before the files, and so the presets, are known.
+    /// </summary>
+    public (int Items, int Children) ExpectedSize { get; private set; }
+
     /// <summary>The other face has a slice for these files: Tab flips to it.</summary>
     [ObservableProperty] private bool _canFlip;
 
@@ -130,6 +139,7 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
         Files = [];
         ApplyAppearance();
         ReserveSubRing = store.Profiles.Any(profile => HasGroups(profile.PresetIds.Concat(profile.BackPresetIds ?? [])));
+        ExpectedSize = Largest(store.Profiles.SelectMany(profile => new[] { profile.PresetIds, profile.BackPresetIds ?? [] }));
         _loads++;
         (_front, _back, _backIds, _formats) = (Face.Empty, Face.Empty, [], []);
         ShowFace(back: false);
@@ -293,7 +303,21 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
     /// Click mode, before the window is placed: room for a group's ring only if this donut has a group, on either face
     /// (the window must not grow, and the donut move, when it flips).
     /// </summary>
-    public void FitToThisDonut() => ReserveSubRing = _front.Items.Any(item => item.IsGroup) || HasGroups(_backIds);
+    public void FitToThisDonut()
+    {
+        ReserveSubRing = _front.Items.Any(item => item.IsGroup) || HasGroups(_backIds);
+        ExpectedSize = Largest([_front.Presets.Select(p => p.Id).ToList(), _backIds]);
+    }
+
+    /// <summary>The most presets in any of <paramref name="faces"/>, and the most presets in any of their groups.</summary>
+    private (int Items, int Children) Largest(IEnumerable<IEnumerable<string>> faces)
+    {
+        var lists = faces.Select(ids => ids.ToList()).ToList();
+        var items = lists.Select(ids => ids.Count).DefaultIfEmpty(0).Max();
+        var children = lists.SelectMany(ids => ids).Select(store.FindPreset).OfType<Preset>().Where(p => p.IsGroup)
+            .Select(p => Math.Min(p.SubPresetIds.Count, Preset.MaxSubPresets)).DefaultIfEmpty(0).Max();
+        return (items, children);
+    }
 
     private void ApplyAppearance()
     {
@@ -302,5 +326,6 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
         SliceOpacity = Math.Clamp(store.Settings.Donut.Opacity, DonutSettings.MinOpacity, 1);
         FlipKey = store.Settings.Donut.EffectiveFlipKey(store.Settings.Triggers);
         FlipWithWheel = store.Settings.Donut.FlipWithWheel;
+        Layout = store.Settings.Donut.Layout;
     }
 }

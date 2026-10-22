@@ -495,14 +495,22 @@ public sealed class RadialController(
     /// <paramref name="area"/> when that would cross its edge. With group slices the window holds the ring they fan out
     /// (<see cref="DonutMenu.SideFor"/>), so near a screen edge the donut moves in far enough for every ring to fit.
     /// </summary>
-    internal static PixelPoint WindowPosition(PixelPoint cursor, PixelRect? area, int sidePx)
+    internal static PixelPoint WindowPosition(PixelPoint cursor, PixelRect? area, int sidePx) =>
+        WindowPosition(cursor, area, new PixelSize(sidePx, sidePx), new PixelPoint(sidePx / 2, sidePx / 2));
+
+    /// <summary>
+    /// Top-left corner of a window of <paramref name="size"/> with <paramref name="anchor"/> (in the window) on
+    /// <paramref name="cursor"/>, moved into <paramref name="area"/> when that would cross its edge: the list and grid
+    /// styles put their header, not their middle, under the cursor.
+    /// </summary>
+    internal static PixelPoint WindowPosition(PixelPoint cursor, PixelRect? area, PixelSize size, PixelPoint anchor)
     {
-        var position = new PixelPoint(cursor.X - sidePx / 2, cursor.Y - sidePx / 2);
+        var position = new PixelPoint(cursor.X - anchor.X, cursor.Y - anchor.Y);
         if (area is not { } a)
             return position;
         return new PixelPoint(
-            Math.Clamp(position.X, a.X, Math.Max(a.X, a.Right - sidePx)),
-            Math.Clamp(position.Y, a.Y, Math.Max(a.Y, a.Bottom - sidePx)));
+            Math.Clamp(position.X, a.X, Math.Max(a.X, a.Right - size.Width)),
+            Math.Clamp(position.Y, a.Y, Math.Max(a.Y, a.Bottom - size.Height)));
     }
 
     private void PlaceAndShow(RadialWindow window, int x, int y, bool activate)
@@ -511,10 +519,12 @@ public sealed class RadialController(
         var screen = window.Screens.ScreenFromPoint(cursor) ?? window.Screens.Primary;
         var scaling = OperatingSystem.IsMacOS() ? 1 : screen?.Scaling ?? 1;
 
-        // Window size follows the donut size (SizeToContent); compute it up front to centre on the cursor.
-        var side = DonutMenu.SideFor(viewModel.OuterRadius, viewModel.ReserveSubRing);
-        var sidePx = (int)Math.Ceiling(side * scaling);
-        var position = WindowPosition(cursor, screen?.WorkingArea, sidePx);
+        // Window size follows the menu size (SizeToContent); compute it up front to put its anchor on the cursor.
+        var (items, children) = viewModel.ExpectedSize;
+        var (size, anchor) = DonutMenu.Footprint(viewModel.Layout, viewModel.OuterRadius, viewModel.ReserveSubRing, items, children);
+        var position = WindowPosition(cursor, screen?.WorkingArea,
+            new PixelSize((int)Math.Ceiling(size.Width * scaling), (int)Math.Ceiling(size.Height * scaling)),
+            new PixelPoint((int)Math.Round(anchor.X * scaling), (int)Math.Round(anchor.Y * scaling)));
 
         Motion.Refresh();
         window.Position = position;

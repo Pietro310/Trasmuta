@@ -45,6 +45,7 @@
                  CenterTitle="{Binding CenterTitle}"
                  CenterSubtitle="{Binding CenterSubtitle}"
                  OuterRadius="{Binding OuterRadius}"
+                 Layout="{Binding Layout}"
                  HoleRatio="{Binding HoleRatio}"
                  SliceOpacity="{Binding SliceOpacity}"
                  ReserveSubRing="{Binding ReserveSubRing}"

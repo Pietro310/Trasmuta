@@ -128,12 +128,14 @@ public sealed partial class DonutMenu : Control
 
     static DonutMenu()
     {
-        AffectsMeasure<DonutMenu>(OuterRadiusProperty, ReserveSubRingProperty);
+        AffectsMeasure<DonutMenu>(OuterRadiusProperty, ReserveSubRingProperty, LayoutProperty);
         AffectsRender<DonutMenu>(HoleRatioProperty, SliceOpacityProperty, CenterTitleProperty, CenterSubtitleProperty,
             IsEditModeProperty, SliceBrushProperty, SliceBorderBrushProperty, CenterBrushProperty, AccentBrushProperty,
             OnAccentBrushProperty, ForegroundProperty, SecondaryForegroundProperty, SuccessBrushProperty, CornerRadiusProperty,
             CenterHintProperty, CenterHintWheelProperty);
         ItemsProperty.Changed.AddClassHandler<DonutMenu>((d, _) => d.OnItemsChanged());
+        // Another style: what was open or lit belongs to the old shapes.
+        LayoutProperty.Changed.AddClassHandler<DonutMenu>((d, _) => d.OnItemsChanged());
     }
 
     public DonutMenu()
@@ -206,7 +208,7 @@ public sealed partial class DonutMenu : Control
     public event EventHandler<int>? ActiveIndexChanged;
 
     private int Count => Items?.Count ?? 0;
-    private Point Center => new(Bounds.Width / 2, Bounds.Height / 2);
+    private Point Center => UsesCards ? CardAnchor(Layout) : new(Bounds.Width / 2, Bounds.Height / 2);
     private double InnerRadius => OuterRadius * Math.Clamp(HoleRatio, 0.2, 0.75);
 
     // ───────────────────────── Public API ─────────────────────────
@@ -366,11 +368,13 @@ public sealed partial class DonutMenu : Control
         if (IsEditMode && _hoverIndex >= 0 && _hoverIndex < Count &&
             Distance(p, EditButtonCenter(_hoverIndex)) <= 13)
             return new DonutHit(DonutHitKind.EditButton, _hoverIndex);
-        var hit = DonutGeometry.HitTest(Center, p, InnerRadius, OuterRadius, Count, PopOut);
+        if (UsesCards)
+            return HitTestCards(p);
+        var hit = DonutGeometry.HitTest(Center, p, InnerRadius, OuterRadius, Count, PopOut, Sweep);
         if (ExpandedChildren is { } children)
         {
             var (inner, outer) = SubRadii;
-            var parentMid = DonutGeometry.MidAngle(_expanded, Count);
+            var parentMid = SliceMid(_expanded, Count);
             var subSpan = SubSpanOf(children.Count);
             var sub = DonutGeometry.SubIndexAt(Center, p, inner, outer, parentMid, children.Count, subSpan);
             if (sub >= 0)
@@ -389,6 +393,8 @@ public sealed partial class DonutMenu : Control
 
     protected override Size MeasureOverride(Size availableSize)
     {
+        if (UsesCards)
+            return CardsMeasure();
         var side = SideFor(OuterRadius, ReserveSubRing || (!IsEditMode && Items?.Any(i => i.IsGroup) == true));
         return new Size(side, side);
     }
@@ -816,6 +822,12 @@ public sealed partial class DonutMenu : Control
             return;
         }
 
+        if (UsesCards)
+        {
+            RenderCards(context, typeface, typefaceRegular);
+            return;
+        }
+
         // A flip turns the ring (and its shadow and a group's ring) about the vertical axis; the hub stays.
         var flip = FlipTransform(center);
         using (context.PushTransform(flip))
@@ -843,7 +855,7 @@ public sealed partial class DonutMenu : Control
 
         if (n == 0)
         {
-            var ring = CreateRing(center, r1, r2);
+            var ring = Sweep < DonutGeometry.FullTurn ? CreateWedge(center, r1, r2, 0, Sweep) : CreateRing(center, r1, r2);
             context.DrawGeometry(WithOpacity(SliceBrush, SliceOpacity), BorderPen(), ring);
             if (_dropTargetIndex >= 0)
                 context.DrawGeometry(WithOpacity(AccentBrush, 0.35), null, ring);
@@ -858,8 +870,8 @@ public sealed partial class DonutMenu : Control
 
             var previewing = IsEditMode && i < _mid.Length;
             var hover = i < _hover.Length && _previewSlot < 0 ? _hover[i].Value : 0;
-            var mid = previewing ? _mid[i].Value : DonutGeometry.MidAngle(i, n);
-            var span = previewing ? _span[i].Value : DonutGeometry.Span(n);
+            var mid = previewing ? _mid[i].Value : SliceMid(i, n);
+            var span = previewing ? _span[i].Value : SliceSpan(n);
             if (span < 0.01)
                 continue;
             var offset = DonutGeometry.PointAt(new Point(0, 0), hover * PopOut, mid);
@@ -910,6 +922,8 @@ public sealed partial class DonutMenu : Control
         };
         var opening = _open.Length == 0 ? 1 : Math.Clamp(_open.Average(), 0, 1);
         using (context.PushOpacity(opening))
+        // The fan casts its shadow only under its slices.
+        using (Sweep < DonutGeometry.FullTurn ? context.PushGeometryClip(BuildWedge(center, 1, shadowRadius + 6, 0, Sweep + 0.12, 0)) : default(DrawingContext.PushedState?))
             context.DrawEllipse(brush, null, new Point(center.X, center.Y + 4), shadowRadius, shadowRadius);
     }
 
@@ -917,12 +931,16 @@ public sealed partial class DonutMenu : Control
     {
         var pulse = 1 + _centerPulse.Value * 0.06;
         var radius = (r1 - 6) * pulse;
-        var cancelHot = _externalCenterHot;
         context.DrawEllipse(CenterBrush, BorderPen(), center, radius, radius);
-        if (cancelHot)
+        if (_externalCenterHot)
             context.DrawEllipse(WithOpacity(DangerBrush, 0.18), null, center, radius, radius);
+        DrawHubText(context, center, radius * 1.6, bold, regular);
+    }
 
-        var maxWidth = radius * 1.6;
+    /// <summary>The hub's title, subtitle and flip hint, centred on <paramref name="center"/> (the hole, or the cards' header).</summary>
+    private void DrawHubText(DrawingContext context, Point center, double maxWidth, Typeface bold, Typeface regular)
+    {
+        var cancelHot = _externalCenterHot;
         var title = MakeText(CenterTitle ?? "", bold, 14, Foreground, maxWidth, maxLines: 2);
         var subtitle = MakeText(CenterSubtitle ?? "", regular, 11.5, cancelHot ? DangerBrush : SecondaryForeground, maxWidth, maxLines: 2);
         // "Tab ↻ back": small, under the rest, a little narrower (the hub is round).
@@ -1104,7 +1122,7 @@ public sealed partial class DonutMenu : Control
     internal double SliceCornerRadius => Math.Clamp(CornerRadius.TopLeft, 0, 28) * 0.5;
 
     private StreamGeometry CreateWedge(Point c, double r1, double r2, int index, int count) =>
-        count == 1 ? CreateRing(c, r1, r2) : CreateWedge(c, r1, r2, DonutGeometry.MidAngle(index, count), DonutGeometry.Span(count));
+        count == 1 && Sweep >= DonutGeometry.FullTurn ? CreateRing(c, r1, r2) : CreateWedge(c, r1, r2, SliceMid(index, count), SliceSpan(count));
 
     /// <summary>A rounded slice of <paramref name="span"/> radians centred on <paramref name="mid"/> (a ring when it is all of it).</summary>
     private StreamGeometry CreateWedge(Point c, double r1, double r2, double mid, double span) =>

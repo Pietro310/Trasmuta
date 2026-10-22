@@ -81,6 +81,54 @@
         </StackPanel>
       </Border>
 
+      <!-- Trasmuta: how the conversion menu opens (DonutSettings.Layout). The preview at the right follows it. -->
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="label" Text="{DynamicResource theme.layout}" />
+          <ListBox ItemsSource="{Binding Layouts}" SelectedItem="{Binding Layout, Mode=TwoWay}"
+                   Background="Transparent" BorderThickness="0" Padding="0"
+                   AutomationProperties.Name="{DynamicResource theme.layout}">
+            <ListBox.Styles>
+              <Style Selector="ListBoxItem">
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0,0,8,8" />
+                <Setter Property="Template">
+                  <ControlTemplate>
+                    <Border x:Name="Tile" Width="92" Height="78" CornerRadius="{DynamicResource SoftRadius}" BorderThickness="2"
+                            BorderBrush="{DynamicResource SubtleBorderBrush}" Background="{DynamicResource SurfaceBrush}">
+                      <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                  </ControlTemplate>
+                </Setter>
+              </Style>
+              <Style Selector="ListBoxItem:pointerover /template/ Border#Tile">
+                <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}" />
+              </Style>
+              <Style Selector="ListBoxItem:selected /template/ Border#Tile">
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+              </Style>
+              <Style Selector="ListBoxItem:focus-visible /template/ Border#Tile">
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+              </Style>
+            </ListBox.Styles>
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel />
+              </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:LayoutChoice">
+                <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <PathIcon Data="{Binding Icon}" Width="26" Height="26" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <TextBlock Classes="caption" TextWrapping="Wrap" Text="{DynamicResource theme.layout_hint}" />
+        </StackPanel>
+      </Border>
+
       <!-- The donut toolbar's opacity: the same setting as Donut toolbar → Appearance → Opacity. -->
       <Border Classes="card">
         <StackPanel Spacing="8">
@@ -107,8 +155,11 @@
         <TextBlock Classes="label" Text="{DynamicResource theme.preview}" />
         <!-- The donut over a stand-in for the desktop, so its opacity shows. -->
         <Border Background="{Binding PreviewBackdrop}" CornerRadius="{DynamicResource SoftRadiusLarge}" Padding="0,10" ClipToBounds="True">
-          <c:DonutMenu x:Name="PreviewDonut" Items="{Binding PreviewItems}" OuterRadius="120" CenterTitle="JPG × 3" HorizontalAlignment="Center"
-                       SliceOpacity="{Binding DonutOpacity, Converter={x:Static vm:ToolbarConverters.Percent}}" />
+          <Viewbox StretchDirection="DownOnly" MaxHeight="380">
+            <c:DonutMenu x:Name="PreviewDonut" Items="{Binding PreviewItems}" OuterRadius="120" CenterTitle="JPG × 3" HorizontalAlignment="Center"
+                         Layout="{Binding Layout.Value}"
+                         SliceOpacity="{Binding DonutOpacity, Converter={x:Static vm:ToolbarConverters.Percent}}" />
+          </Viewbox>
         </Border>
         <!-- Samples of the accent on controls: pictures only, so they don't pass for settings. -->
         <StackPanel Spacing="14" IsHitTestVisible="False">

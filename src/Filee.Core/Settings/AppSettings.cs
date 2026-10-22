@@ -46,9 +46,28 @@ public sealed class ThemeSettings
     public ThemeSettings Clone() => (ThemeSettings)MemberwiseClone();
 }
 
+/// <summary>How the conversion menu lays out its presets (Settings → Theme → Menu style).</summary>
+public enum MenuLayout
+{
+    /// <summary>The full donut around the cursor.</summary>
+    Ring,
+
+    /// <summary>Half a donut, opening upward from the cursor.</summary>
+    Fan,
+
+    /// <summary>A vertical list under the cursor, like a context menu.</summary>
+    List,
+
+    /// <summary>Tiles in three columns under the cursor.</summary>
+    Grid,
+}
+
 /// <summary>Geometry and appearance of the donut toolbar.</summary>
 public sealed class DonutSettings
 {
+    /// <summary>How the menu is laid out; the editor in Settings always shows the donut.</summary>
+    public MenuLayout Layout { get; set; } = MenuLayout.Ring;
+
     /// <summary>Outer radius in logical pixels.</summary>
     public double OuterRadius { get; set; } = 150;
 

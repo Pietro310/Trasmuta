@@ -70,6 +70,38 @@ public static class DonutGeometry
         return (int)Math.Floor((angle + span / 2) / span) % count;
     }
 
+    /// <summary>A whole turn: the donut. Less than this is a fan (Trasmuta's "Fan" menu style).</summary>
+    public const double FullTurn = 2 * Math.PI;
+
+    /// <summary>Angle covered by one of <paramref name="count"/> slices sharing <paramref name="sweep"/> radians.</summary>
+    public static double Span(int count, double sweep) => sweep >= FullTurn ? Span(count) : count <= 0 ? sweep : sweep / count;
+
+    /// <summary>
+    /// Centre angle of slice <paramref name="index"/> when the slices share <paramref name="sweep"/> radians: a whole
+    /// turn starts at 12 o'clock as <see cref="MidAngle(int, int)"/>; a fan is centred on 12 o'clock, first slice left.
+    /// </summary>
+    public static double MidAngle(int index, int count, double sweep) =>
+        sweep >= FullTurn ? MidAngle(index, count) : -sweep / 2 + (index + 0.5) * Span(count, sweep);
+
+    /// <summary>
+    /// Like <see cref="HitTest(Point, Point, double, double, int, double)"/> for slices sharing <paramref name="sweep"/>
+    /// radians: on the ring but outside the fan is <see cref="DonutHitKind.Outside"/>.
+    /// </summary>
+    public static DonutHit HitTest(Point center, Point p, double innerRadius, double outerRadius, int count, double slack, double sweep)
+    {
+        var hit = HitTest(center, p, innerRadius, outerRadius, count, slack);
+        if (sweep >= FullTurn || hit.Kind is not (DonutHitKind.Segment or DonutHitKind.EmptyRing))
+            return hit;
+        // Signed angle from 12 o'clock, -π..π.
+        var angle = Math.IEEERemainder(AngleOf(center, p), FullTurn);
+        if (Math.Abs(angle) > sweep / 2)
+            return new DonutHit(DonutHitKind.Outside);
+        if (count == 0)
+            return hit;
+        var index = (int)Math.Floor((angle + sweep / 2) / Span(count, sweep));
+        return new DonutHit(DonutHitKind.Segment, Math.Clamp(index, 0, count - 1));
+    }
+
     /// <summary>How far a group's fan reaches into each neighbouring slice, as a share of a slice.</summary>
     public const double SubOverhang = 0.25;
 

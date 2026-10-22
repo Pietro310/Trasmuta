@@ -28,6 +28,14 @@ public sealed partial class ThemePageViewModel : ObservableObject
         CornerRadius = theme.CornerRadius;
         DonutOpacity = Math.Round(Math.Clamp(store.Settings.Donut.Opacity, DonutSettings.MinOpacity, 1) * 100);
         ReduceMotion = theme.ReduceMotion ?? platform.PrefersReducedMotion;
+        Layouts =
+        [
+            new(MenuLayout.Ring, loc["theme.layout.Ring"], StreamGeometry.Parse("F0 M12,2 A10,10 0 1 1 11.99,2 Z M12,7 A5,5 0 1 1 11.99,7 Z")),
+            new(MenuLayout.Fan, loc["theme.layout.Fan"], StreamGeometry.Parse("F0 M2,18 A10,10 0 0 1 22,18 L17,18 A5,5 0 0 0 7,18 Z")),
+            new(MenuLayout.List, loc["theme.layout.List"], StreamGeometry.Parse("M4,3 H20 V7.5 H4 Z M4,9.75 H20 V14.25 H4 Z M4,16.5 H20 V21 H4 Z")),
+            new(MenuLayout.Grid, loc["theme.layout.Grid"], StreamGeometry.Parse("M3,3 H10.5 V10.5 H3 Z M13.5,3 H21 V10.5 H13.5 Z M3,13.5 H10.5 V21 H3 Z M13.5,13.5 H21 V21 H13.5 Z")),
+        ];
+        Layout = Layouts.FirstOrDefault(l => l.Value == store.Settings.Donut.Layout) ?? Layouts[0];
         PreviewItems =
         [
             new DonutItem { Id = "a", Label = "PNG" },
@@ -43,6 +51,20 @@ public sealed partial class ThemePageViewModel : ObservableObject
     public IReadOnlyList<Choice<ThemeMode>> Modes { get; }
     public IReadOnlyList<Color> Swatches { get; } = ThemeService.Swatches.Select(Color.Parse).ToList();
     public IReadOnlyList<DonutItem> PreviewItems { get; }
+
+    /// <summary>The menu styles, as tiles with a small picture of each.</summary>
+    public IReadOnlyList<LayoutChoice> Layouts { get; }
+
+    /// <summary>The menu style: saved at once, followed by the preview and by the menu the next time it opens.</summary>
+    [ObservableProperty] private LayoutChoice _layout = null!;
+
+    partial void OnLayoutChanged(LayoutChoice value)
+    {
+        if (_loading || value is null)
+            return;
+        _store.Settings.Donut.Layout = value.Value;
+        _store.SaveSettings();
+    }
 
     [ObservableProperty] private Choice<ThemeMode> _mode = null!;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(AccentBrush), nameof(PreviewBackdrop))] private Color _accent;
@@ -112,3 +134,6 @@ public sealed partial class ThemePageViewModel : ObservableObject
         _store.SaveSettings(); // App re-applies the theme on SettingsChanged
     }
 }
+
+/// <summary>A menu style on the Theme page: its name and a small picture of it.</summary>
+public sealed record LayoutChoice(MenuLayout Value, string Name, Geometry Icon);

@@ -72,7 +72,7 @@ public sealed partial class DonutMenu
     private bool InFan(Point p, int group)
     {
         var count = group >= 0 && group < Count ? Items![group].Children?.Count ?? 0 : 0;
-        return count > 0 && DonutGeometry.SubIndexAt(Center, p, 0, double.MaxValue, DonutGeometry.MidAngle(group, Count),
+        return count > 0 && DonutGeometry.SubIndexAt(Center, p, 0, double.MaxValue, SliceMid(group, Count),
             count, SubSpanOf(count)) >= 0;
     }
 
@@ -85,13 +85,13 @@ public sealed partial class DonutMenu
 
     /// <summary>Width of each slice of a ring of <paramref name="count"/>.</summary>
     private double SubSpanOf(int count) =>
-        DonutGeometry.SubSpan(DonutGeometry.Span(Count), count, (SubRadii.Inner + SubRadii.Outer) / 2);
+        DonutGeometry.SubSpan(SliceSpan(Count), count, (SubRadii.Inner + SubRadii.Outer) / 2);
 
     /// <summary>The middle of slice <paramref name="sub"/> of group <paramref name="group"/>'s ring (tests).</summary>
     internal Point SubSliceCenter(int group, int sub)
     {
         var count = Items![group].Children!.Count;
-        var mid = DonutGeometry.SubMidAngle(DonutGeometry.MidAngle(group, Count), sub, count, SubSpanOf(count));
+        var mid = DonutGeometry.SubMidAngle(SliceMid(group, Count), sub, count, SubSpanOf(count));
         return DonutGeometry.PointAt(Center, (SubRadii.Inner + SubRadii.Outer) / 2, mid);
     }
 
@@ -105,6 +105,11 @@ public sealed partial class DonutMenu
     {
         if (IsEditMode)
             return;
+        if (UsesCards)
+        {
+            TrackGroupsCards(hit, at);
+            return;
+        }
         var before = (_expanded, _pendingGroup);
         var sub = -1;
         switch (hit.Kind)
@@ -235,14 +240,18 @@ public sealed partial class DonutMenu
             _ => 0,
         };
 
-        // Esc / Backspace fold an open ring first, however it was opened; only then does Esc close the donut.
-        if (ExpandedChildren is not null && key is Key.Escape or Key.Back)
+        // Esc / Backspace fold an open ring first, however it was opened; only then does Esc close the donut. In the
+        // card styles the left arrow folds a group's column too.
+        if (ExpandedChildren is not null && (key is Key.Escape or Key.Back || UsesCards && key == Key.Left))
         {
             var group = _expanded;
             CollapseGroup();
             SetHover(group);
             return true;
         }
+
+        if (DigitOf(key) is { } digit)
+            return PickByDigit(digit);
 
         if (ExpandedChildren is { } children && _subHover >= 0)
         {
@@ -261,6 +270,11 @@ public sealed partial class DonutMenu
         var current = ActiveIndex;
         switch (key)
         {
+            case Key.Right when UsesCards && Layout == Filee.Core.Settings.MenuLayout.List && current >= 0 && Items![current].CanExpand:
+                Expand(current);
+                SetSub(0);
+                _ringFromKeys = true;
+                return true;
             case Key.Enter or Key.Space when current >= 0:
                 if (Items![current].CanExpand)
                 {
@@ -277,7 +291,7 @@ public sealed partial class DonutMenu
         if (step == 0)
             return false;
         CollapseGroup();
-        SetHover(current < 0 ? (step > 0 ? 0 : Count - 1) : (current + step + Count) % Count);
+        SetHover(CardStep(key, current) ?? (current < 0 ? (step > 0 ? 0 : Count - 1) : (current + step + Count) % Count));
         return true;
     }
 
@@ -349,7 +363,7 @@ public sealed partial class DonutMenu
         var reach = SubRadii.Outer + BackdropMargin;
         var span = Math.Min(2 * Math.PI, SubSpanOf(count) * count + 2 * BackdropMargin / reach);
         context.DrawEllipse(HitBackdrop, null, center, OuterRadius + PopOut, OuterRadius + PopOut);
-        context.DrawGeometry(HitBackdrop, null, CreateWedge(center, OuterRadius, reach, DonutGeometry.MidAngle(group, Count), span, 0));
+        context.DrawGeometry(HitBackdrop, null, CreateWedge(center, OuterRadius, reach, SliceMid(group, Count), span, 0));
     }
 
     /// <summary>
@@ -368,6 +382,8 @@ public sealed partial class DonutMenu
         var group = _expanded >= 0 ? _expanded : _pendingGroup;
         if (group < 0 || group >= Count || IsEditMode)
             return false;
+        if (UsesCards)
+            return new Rect(Bounds.Size).Deflate(LeaveEdge).Contains(p);
         var distance = Distance(p, Center);
         if (distance <= OuterRadius + PopOut - LeaveEdge)
             return true;
@@ -377,7 +393,7 @@ public sealed partial class DonutMenu
             return false;
         // Inside the backdrop's wedge, and LeaveEdge away from its sides.
         var halfSpan = Math.Min(2 * Math.PI, SubSpanOf(count) * count + 2 * BackdropMargin / reach) / 2;
-        var inside = halfSpan - Math.Abs(Math.IEEERemainder(DonutGeometry.AngleOf(Center, p) - DonutGeometry.MidAngle(group, Count), 2 * Math.PI));
+        var inside = halfSpan - Math.Abs(Math.IEEERemainder(DonutGeometry.AngleOf(Center, p) - SliceMid(group, Count), 2 * Math.PI));
         return inside > 0 && (inside >= Math.PI / 2 || distance * Math.Sin(inside) >= LeaveEdge);
     }
 
@@ -386,7 +402,7 @@ public sealed partial class DonutMenu
     {
         var group = _shownExpanded;
         var children = Items![group].Children!;
-        var parentMid = DonutGeometry.MidAngle(group, Count);
+        var parentMid = SliceMid(group, Count);
         var subSpan = SubSpanOf(children.Count);
         var (inner, outer) = SubRadii;
         var t = Math.Max(0, _expand.Value);
