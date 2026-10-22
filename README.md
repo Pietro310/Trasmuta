@@ -1,197 +1,84 @@
 <p align="center">
-  <a href="https://filee.sh"><img src="docs/media/banner-en.jpg" alt="Filee: Drag. Drop. Converted." width="100%"></a>
+  <img src="src/Filee.App/Assets/Icons/filee.png" alt="Trasmuta" width="128">
 </p>
+
+<h1 align="center">Trasmuta</h1>
 
 <p align="center">
-  <b>A free, open-source file converter you use by dragging.</b><br>
-  Hold a key (<kbd>Ctrl</kbd>, <kbd>Option</kbd> on macOS), drag files and drop them on a format in the donut that opens at your cursor.
+  <b>Il convertitore di file che si apre sotto il cursore.</b><br>
+  Trascina uno o più file tenendo premuto un tasto, lasciali sul formato che vuoi: fatto.
 </p>
 
-<p align="center">
-  <a href="https://filee.sh"><b>Website</b></a> ·
-  <a href="https://github.com/KnifeLemon/Filee/releases/latest"><b>Download</b></a> ·
-  <a href="#install">Install</a> ·
-  <a href="#command-line">Command line</a> ·
-  <a href="#development">Development</a>
-</p>
+---
 
-<p align="center">
-  <a href="https://github.com/KnifeLemon/Filee/actions/workflows/ci.yml"><img src="https://github.com/KnifeLemon/Filee/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/KnifeLemon/Filee/releases/latest"><img src="https://img.shields.io/github/v/release/KnifeLemon/Filee?color=7F77DD&label=release" alt="Latest release"></a>
-  <a href="https://github.com/KnifeLemon/Filee/releases"><img src="https://img.shields.io/github/downloads/KnifeLemon/Filee/total?color=1D9E75" alt="Downloads"></a>
-  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-3C3489" alt="Windows 10 | 11">
-  <img src="https://img.shields.io/badge/Linux-x64%20%7C%20ARM64-3C3489" alt="Linux x64 | ARM64">
-  <img src="https://img.shields.io/badge/macOS-preview-534AB7" alt="macOS preview">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-6A62C9" alt="MIT license"></a>
-</p>
+## Perché Trasmuta
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/276987"><img src="https://trendshift.io/api/badge/trendshift/repositories/276987/weekly?language=C%23&v=2" alt="Filee: #1 C# repository of the week on Trendshift" width="250" height="55"></a>
-  <a href="https://trendshift.io/repositories/276987"><img src="https://trendshift.io/api/badge/trendshift/repositories/276987/daily?language=C%23&v=2" alt="Filee: #1 C# repository of the day on Trendshift" width="250" height="55"></a>
-</p>
+- **Niente finestre da aprire.** Il menu dei formati compare dove si trova già il mouse, e mostra solo i formati
+  sensati per i file che stai trascinando.
+- **Quattro stili di menu.** Cerchio, Ventaglio, Elenco o Griglia: scegli quello che ti è più comodo in
+  Impostazioni → Tema → Stile menu. L'anteprima mostra subito come apparirà.
+- **Tastiera ovunque.** In ogni stile i tasti <kbd>1</kbd>–<kbd>9</kbd> scelgono un formato, le frecce si spostano,
+  <kbd>Invio</kbd> converte, <kbd>Esc</kbd> chiude. <kbd>Tab</kbd> (o la rotella) passa ai formati meno usati.
+- **Tutto resta sul tuo computer.** Nessun file viene caricato online: la conversione avviene in locale e il
+  risultato viene salvato accanto all'originale.
+- **Centinaia di formati.** Immagini, PDF, documenti Office, fogli di calcolo, presentazioni, HWP, e-book, video,
+  audio, sottotitoli, archivi, font, CAD, modelli 3D e dati geografici.
 
-<p align="center"><b>English</b> · <a href="README.es.md">Español</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.pl.md">Polski</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.ru.md">Русский</a> · <a href="README.ar.md">العربية</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.fr.md">Français</a></p>
+## Come si usa
 
-<table>
-  <tr>
-    <td width="33%" valign="top"><b>Right at your cursor</b><br>No app window to open. The formats appear where you already are, only the ones that make sense for the files you drag.</td>
-    <td width="33%" valign="top"><b>255 formats, no other software</b><br>Images, PDF, Word, Excel, PowerPoint, HWP, e-books, archives, fonts, CAD, 3D models and geospatial data work without Office, Hancom Office or LibreOffice.</td>
-    <td width="33%" valign="top"><b>Stays on your computer</b><br>Nothing is uploaded. Filee works offline and saves the result next to the original.</td>
-  </tr>
-</table>
+1. Tieni premuto <kbd>Option</kbd> (su Windows e Linux <kbd>Ctrl</kbd>) e trascina dei file dal Finder.
+2. Sotto il cursore si apre il menu con i formati adatti.
+3. Lascia i file sul formato desiderato: un anello mostra l'avanzamento e il file convertito compare accanto
+   all'originale.
 
-## See it in action
+Altri modi per aprire il menu: la scorciatoia da tastiera sui file selezionati, la voce **Converti con Trasmuta**
+nel menu contestuale del Finder e la zona di rilascio nella schermata Home.
 
-<p align="center">
-  <a href="https://filee.sh"><img src="docs/media/demo-en.webp" alt="Dragging trip.jpg with Ctrl held: a donut of formats opens at the cursor, the file is dropped on PNG, a progress ring completes and trip.png appears" width="820"></a><br>
-  <sub>Watch the 27-second video and try the interactive demo on <a href="https://filee.sh">filee.sh</a></sub>
-</p>
+Ogni tipo di file ha il suo menu, con preset per qualità, dimensioni, DPI, pagine PDF, compressione, video e audio,
+cartella di destinazione e nome dei file. I preset si riordinano trascinandoli in Impostazioni → Barra strumenti.
 
-## Install
+## Formati principali
 
-Download from [Releases](https://github.com/KnifeLemon/Filee/releases/latest).
-
-- **Windows 10/11**: run `Filee-<version>-win-Setup.exe`, or unzip the `win-Portable.zip` and run `Filee.exe`.
-  Setup is Filee's own installer, in Filee's languages, and needs nothing else on the PC. It can add the Explorer
-  menu, start at sign-in, the `filee` command and optional engines; silent installs take Inno Setup's switches
-  (`/VERYSILENT /SUPPRESSMSGBOXES`).
-- **macOS 13+** (preview): unpack the `osx-arm64` or `osx-x64` package and run `./install.sh`.
-  The build isn't notarized yet, so allow the first start in System Settings → Privacy & Security → **Open Anyway**.
-- **Linux x64/ARM64** (Ubuntu 22.04+): unpack the package and run `./install.sh` (no root, needs Python 3).
-  Drag gestures need X11. On Wayland, use the drop zone and the file manager's right-click menu.
-
-Filee shows new releases in its menu and updates itself, keeping your settings and engines. After an update, a few
-slides show what's new.
-
-## Features
-
-- **A donut at the cursor**: hold a key, drag files and drop them on a format. Only formats that fit the files appear.
-- **Straight from the browser**: drag a picture, a link to a file or a download out of Chrome, Edge, Firefox or Safari the same
-  way. Filee saves it to your Downloads folder (or keeps only the converted file) and converts it. Links are downloaded
-  without your browser's sign-in.
-- **One toolbar per file type**, arranged by drag and drop, with presets for quality, size, DPI, PDF pages and compression,
-  video and audio, output folder and file names.
-- **Two sides to every donut**: press <kbd>Tab</kbd> or turn the mouse wheel while it is open to flip it over to less common formats and tools.
-- **Crop before converting**: the Crop slice opens pictures one by one. Drag the frame, pick a ratio, and only that part is saved.
-- **Many files at once**, in parallel. Routes with several steps (HWP → HWPX → DOCX) are found automatically.
-- **Watch folders** convert every file that lands in them.
-- **Recent conversions** on Home, each with a thumbnail: open the result, or open it with another app.
-- **Other ways in**: the right-click menu, a keyboard shortcut, the drop zone and the [`filee` command](#command-line).
-- Light and dark themes with your own accent colour and donut opacity, in English, Español, 日本語, 한국어, 简体中文, 繁體中文, Polski, हिन्दी, Русский, العربية (right to left), Português (Brasil) and Français.
-
-## Screenshots
-
-<table>
-  <tr>
-    <td width="50%"><img src="docs/media/page-toolbar-en.png" alt="Donut toolbar editor with profiles and presets"></td>
-    <td width="50%"><img src="docs/media/page-home-en.png" alt="Home screen with the drop zone and recent conversions"></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Arrange the donut by drag and drop, one profile per file type</sub></td>
-    <td align="center"><sub>Home: drop zone and recent conversions</sub></td>
-  </tr>
-</table>
-
-## Formats
-
-| From | To |
+| Da | A |
 |---|---|
-| **Images**: JPG, PNG, WEBP, AVIF, TIFF, BMP, GIF, APNG, ICO, ICNS, JPEG XL, JPEG 2000, PSD/PSB, TGA, PPM, HEIC, QOI, DDS, PCX, MNG, CUR, …; GIMP XCF, camera RAW (CR2, CR3, NEF, ARW, DNG, …), DICOM, OpenEXR, HDR, JPEG XR (Windows), iPhone Live Photo (LIVP) read | any of these (HEIC⁵), PDF, SVG (traced), resized, grayscale; Live/Motion Photos (iPhone, Android) → their video (MP4, MOV⁵), and a video → Live Photo (iPhone) or Motion Photo (Android)⁵, experimental |
-| **Vector**: SVG, SVGZ, EMF, WMF, AI · EPS, PS¹ · CDR, VSD, CGM, ODG, FODG² | PDF (vector), PNG and other images, SVG ↔ SVGZ, SVG → DXF/DWG, PDF → EPS/PS¹, SVG → EMF, WMF, ODG² |
-| **PDF** | DOCX, HWPX, TXT, PNG, JPG, TIFF, CBZ, PPTX (a picture of each page), SVG²; merge (in an order you choose first), split, page ranges, compress (smaller PDFs) |
-| **Documents**: DOCX, DOCM, DOTX, EML, Outlook MSG; OFD (Chinese e-invoices, official documents) read · DOC, ODT, FODT, OTT, RTF, WPS, WPD, Pages, ClarisWorks, MacWrite, T602, …² | PDF, DOCX, HWPX, EPUB, TXT, HTML; MSG → EML · ODT, FODT, OTT² |
-| **Spreadsheets**: XLSX, XLSM, XLS, XLT, ODS, CSV, TSV · OTS, FODS, Numbers, ET² | PDF, XLSX, ODS, CSV, TSV, JSON, HWPX, HTML · XLT, OTS² |
-| **Presentations**: PPTX, PPTM, POTX, POTM, PPSX · PPT, ODP, OTP, FODP, Keynote² | PDF, PNG, JPG, DOCX, HWPX · OTP² |
-| **HWP**: HWP, HWPX | PDF, PNG, DOCX, HWPX ↔ HWP, TXT, Markdown, HTML |
-| **Text**: TXT, LOG, script source (PY, PAC, BAT, COMMAND; read, never run), Markdown, HTML; MHTML (saved web pages) read · reStructuredText, LaTeX, Org, AsciiDoc, Typst, MediaWiki, DocBook, Jupyter, Textile, man, OPML³ | UTF-8 TXT, PDF, DOCX, HWPX, EPUB · each other, PPTX slides³ |
-| **E-books**: EPUB, KEPUB, MOBI, AZW3, AZW, AZW4, FB2, CBZ, CBR, CB7, HTMLZ, TXTZ · LIT, LRF, CHM, PDB, …⁴ | PDF, EPUB, KEPUB (Kobo), DOCX, TXT, HTML, HWPX · MOBI, AZW3⁴ |
-| **Video**⁵: MP4, MOV, MKV, WEBM, AVI, WMV, FLV, MPEG, Video CD (DAT), TS, M2TS, 3GP, OGV, VOB, … | MP4 (H.264, HEVC, AV1), WEBM, MOV, MKV, AVI, GIF, APNG, MP3, M4A, 720p, subtitles (SRT, ASS, WebVTT) |
-| **Audio**⁵: MP3, M4A, AAC, WAV, FLAC, OGG, OPUS, WMA, AIFF, AMR, APE, WavPack, TTA, DSD (DSF, DFF), DTS, AC3, E-AC3, … | MP3, M4A (AAC, ALAC), WAV, FLAC, OGG, OPUS, AAC, WavPack, TTA, W64, AC3, E-AC3 |
-| **Subtitles**: SRT, ASS/SSA, WebVTT, SAMI (SMI), LRC, TTML, MicroDVD, SCC | each other as UTF-8 (Korean CP949 files read correctly) |
-| **Archives**: ZIP, ANSYS Workbench (WBPZ), 7Z, RAR, TAR, TAR.GZ, TAR.BZ2, TAR.XZ, GZ, ISO, CAB, DMG, ALZ, EGG, … | extract, ZIP, 7Z, TAR, TAR.GZ; any files → one ZIP |
-| **CAD**: DWG, DXF | PDF, SVG, PNG, DWG ↔ DXF |
-| **Fonts**: TTF, OTF, WOFF, WOFF2, EOT | each other |
-| **Data**: JSON, JSON Lines, YAML, TOML, XML · vCard | each other, CSV and XLSX (tables); vCard ↔ CSV |
-| **3D models**: GLB, glTF, STL, OBJ (+ MTL), 3MF, PLY; FBX read | each other, PNG preview |
-| **Geospatial vectors**: Shapefile, GeoJSON, KML, KMZ, GPX · CSV with coordinates | each other and CSV / XLSX / JSON; projected data (UTM, Web Mercator, Lambert, Albers) comes out as WGS 84 longitude / latitude |
+| **Immagini**: JPG, PNG, WEBP, AVIF, HEIC, TIFF, GIF, PSD, RAW delle fotocamere, … | tra loro, PDF, ICO/ICNS, SVG (vettorializzazione) |
+| **PDF** | DOCX, TXT, immagini, unione, divisione, compressione |
+| **Documenti, fogli, presentazioni**: DOCX, XLSX, PPTX, ODT, Pages, Numbers, Keynote, … | PDF, DOCX, XLSX, CSV, immagini, … |
+| **Video e audio**: MP4, MOV, MKV, MP3, WAV, FLAC, … | MP4, WEBM, GIF, MP3, M4A, FLAC, … |
+| **Archivi**: ZIP, 7Z, RAR, TAR, DMG, ISO, … | estrazione, ZIP, 7Z, TAR |
+| **Altro**: e-book, sottotitoli, font, CAD (DWG/DXF), modelli 3D, dati geografici | tra loro e formati comuni |
 
-Unmarked formats work out of the box, without Office, Hancom Office or LibreOffice.
-Marked ones need an optional engine, downloaded only when needed: ¹ Ghostscript, ² LibreOffice, ³ Pandoc, ⁴ calibre,
-⁵ FFmpeg ([details](docs/ENGINES.md)).
+Alcune conversioni usano motori opzionali (FFmpeg, LibreOffice, Ghostscript, Pandoc, calibre) che Trasmuta scarica
+dalle fonti ufficiali solo quando servono. I dettagli sono in [docs/ENGINES.md](docs/ENGINES.md).
 
-## Command line
+## Installazione su macOS
 
-The `filee` command uses the same engines and presets as the app (Setup or `install.sh` adds it).
-
-```
-filee convert photo.heic --to jpg
-filee convert *.png --to webp --quality 80 -o converted
-filee watch D:\Inbox --to pdf --move-originals
-```
-
-Every command and option: [filee.sh/cli](https://filee.sh/cli/) or `filee help`.
-
-## Development
-
-Build with the .NET 10 SDK on Windows, macOS or Linux:
+Serve il [.NET 10 SDK](https://dotnet.microsoft.com/download) (con Homebrew: `brew install --cask dotnet-sdk`).
 
 ```bash
-git clone https://github.com/KnifeLemon/Filee.git
-cd Filee
-pwsh build/fetch-engines.ps1 -Only rhwp,pandoc   # optional engines
-dotnet run --project src/Filee.App
-dotnet test
+build/build-trasmuta-macos.sh --install
 ```
 
-[Architecture](docs/ARCHITECTURE.md) · [Engines](docs/ENGINES.md) · [Adding a converter](docs/ADDING-A-CONVERTER.md) ·
-[Adding a language](docs/ADDING-A-LANGUAGE.md) · [Contributing](CONTRIBUTING.md)
+Lo script compila l'app, la firma localmente e la installa in `~/Applications/Trasmuta.app`. Al primo avvio concedi
+a Trasmuta i permessi **Accessibilità** (per i gesti) e **Automazione del Finder** (per leggere la selezione) in
+Impostazioni di Sistema → Privacy e sicurezza.
 
-Pull requests are welcome. If Filee saves you some clicks, a ⭐ helps other people find it.
+## Sviluppo
 
-## Code signing policy
+```bash
+dotnet run --project src/Filee.App      # avvia l'app dal codice
+dotnet test                              # esegue i test
+```
 
-Filee is developed and published by **Myeonggu Kim** ([KnifeLemon](https://github.com/KnifeLemon)).
+- [Guida per lo sviluppo](CONTRIBUTING.md)
+- [Architettura](docs/ARCHITECTURE.md) · [Motori di conversione](docs/ENGINES.md) ·
+  [Aggiungere un convertitore](docs/ADDING-A-CONVERTER.md) · [Aggiungere una lingua](docs/ADDING-A-LANGUAGE.md) ·
+  [Temi personalizzati](docs/CUSTOM-THEMES.md)
 
-Windows releases will be signed with a [Certum](https://www.certum.eu/) open source code signing certificate issued
-to Myeonggu Kim. The certificate is being issued; until then, releases are not code-signed and Windows SmartScreen
-may warn when you run the installer ("More info" → "Run anyway"). macOS packages are ad-hoc signed and not notarized.
+## Licenza
 
-Only the installer and files built by this repository's GitHub Actions release workflow are signed, and every release
-is approved by hand. Bundled third-party programs (rhwp, 7-Zip) keep their own publishers' files.
+Trasmuta è software libero distribuito con licenza MIT: vedi [LICENSE](LICENSE). I componenti di terze parti
+inclusi mantengono le proprie licenze, elencate in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) e nella
+pagina Informazioni dell'app.
 
-### Privacy policy
-
-Filee converts files on your own computer and never uploads them. It collects no usage data and sends no telemetry.
-It connects to the internet only:
-
-- to ask GitHub (`api.github.com`) whether a newer release exists, shortly after start and then every few hours.
-  Turn this off in Settings → About ("Check for updates automatically").
-- to download the conversion engines you choose to install, from the official locations pinned in
-  [`engines.json`](src/Filee.Engines/Infrastructure/engines.json).
-- when you click a link, which opens your web browser.
-
-## Sponsor
-
-Filee is free and stays free. If you'd like to support it, pick whichever way suits you
-([Fairy](https://fairy.hada.io/@filee) takes Korean cards and easy-pay).
-
-**Your name or logo here.** Monthly backers are listed here by name, and sponsors get their logo here and on
-Filee's About page. One-time supporters can ask to be listed too.
-
-<!-- sponsors: src/Filee.App/Assets/Sponsors/sponsors.json -->
-
-<p align="center">
-  <a href="https://github.com/sponsors/KnifeLemon"><img src="https://img.shields.io/badge/GitHub%20Sponsors-EA4AAA?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="GitHub Sponsors"></a>
-  <a href="https://patreon.com/KnifeLemon"><img src="https://img.shields.io/badge/Patreon-000000?style=for-the-badge&logo=patreon&logoColor=white" alt="Patreon"></a>
-  <a href="https://ko-fi.com/knifelemon"><img src="https://img.shields.io/badge/Ko--fi-FF6433?style=for-the-badge&logo=kofi&logoColor=white" alt="Ko-fi"></a>
-  <a href="https://paypal.me/knifelemon"><img src="https://img.shields.io/badge/PayPal-002991?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal"></a>
-  <a href="https://fairy.hada.io/@filee"><img src="https://img.shields.io/badge/Fairy-2E9E6B?style=for-the-badge" alt="Fairy"></a>
-</p>
-
-## License
-
-MIT, © 2026 Myeonggu Kim (KnifeLemon) and Filee contributors. Bundled third-party components keep their own licenses, listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
-
-<p align="center">
-  <a href="https://star-history.com/#KnifeLemon/Filee&Date"><img src="https://api.star-history.com/svg?repos=KnifeLemon/Filee&type=Date" alt="Star history" width="600"></a>
-</p>
+© 2026 Pietro310

@@ -89,6 +89,6 @@ public sealed partial class AboutPageViewModel : ObservableObject, IDisposable
         if (!AssetLoader.Exists(uri))
             return "";
         using var reader = new StreamReader(AssetLoader.Open(uri));
-        return reader.ReadToEnd();
+        return reader.ReadToEnd().Replace("Filee", Filee.Core.AppIdentity.Name, StringComparison.Ordinal);
     }
 }

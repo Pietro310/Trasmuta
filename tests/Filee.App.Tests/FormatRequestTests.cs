@@ -91,7 +91,7 @@ public sealed class FormatRequestTests : IDisposable
     }
 
     [AvaloniaFact]
-    public void The_donut_closing_on_unknown_files_offers_the_request_once()
+    public void The_donut_closing_on_unknown_files_offers_no_request()
     {
         TestServices.EnsureInitialized("en");
         var radial = AppHost.Get<RadialController>();
@@ -104,23 +104,7 @@ public sealed class FormatRequestTests : IDisposable
             radial.Close(animate: false);
             Pump();
 
-            var notice = windows.FormatRequestNotice;
-            Assert.NotNull(notice);
-            Assert.True(notice.IsVisible);
-            Assert.Equal(["." + extension], notice.Extensions);
-            notice.Close();
-            Pump();
-
-            // Once per extension while Filee runs.
-            radial.ShowForFiles(400, 400, [song]);
-            radial.Close(animate: false);
-            Pump();
-            Assert.Null(windows.FormatRequestNotice);
-
-            // Files Filee reads: nothing to request, even mixed with an unknown type (the toast covers that one).
-            radial.ShowForFiles(400, 400, [File("notes.txt"), File("song." + NewExtension())]);
-            radial.Close(animate: false);
-            Pump();
+            // Trasmuta has no public tracker: the donut closes without offering a request.
             Assert.Null(windows.FormatRequestNotice);
         }
         finally

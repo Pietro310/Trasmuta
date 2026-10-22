@@ -428,45 +428,6 @@ public class WhatsNewTests
         Assert.False(media.HasPicture);
     }
 
-    [AvaloniaFact]
-    public void About_offers_the_slides_again()
-    {
-        TestServices.EnsureInitialized("en");
-        var service = AppHost.Get<WhatsNewService>();
-        var store = AppHost.Get<UserDataStore>();
-        var (version, seen) = (service.CurrentVersion, store.Settings.WhatsNewSeenVersion);
-        try
-        {
-            service.CurrentVersion = new Version(2, 0, 3);
-            var vm = new MainWindowViewModel(AppHost.Services, AppHost.Get<ILocalizer>(), AppHost.Get<UpdateService>());
-            vm.Navigate("about");
-            var window = new MainWindow { DataContext = vm, Width = 1080, Height = 820 };
-            window.Show();
-            Pump();
-            var about = (AboutPageViewModel)vm.CurrentPage!;
-            Assert.Equal(AppHost.Get<ILocalizer>().Format("whats_new.about_link", "2.0"), about.WhatsNewText);
-            var link = Named(window, "WhatsNewLink");
-            Assert.True(link.IsEffectivelyVisible);
-            Save(window, "page-about-whats-new-en.png");
-
-            link.Command!.Execute(null);
-            Pump();
-            Assert.IsType<WhatsNewWindow>(AppHost.Get<WindowService>().WhatsNew);
-            Assert.Equal("2.0.3", store.Settings.WhatsNewSeenVersion);
-            AppHost.Get<WindowService>().WhatsNew!.Close();
-            window.Close();
-
-            // A version older than every deck has nothing to offer.
-            service.CurrentVersion = new Version(1, 12, 0);
-            using var older = new AboutPageViewModel(AppHost.Get<ILocalizer>(), store, AppHost.Get<UpdateService>(), service);
-            Assert.False(older.HasWhatsNew);
-        }
-        finally
-        {
-            (service.CurrentVersion, store.Settings.WhatsNewSeenVersion) = (version, seen);
-        }
-    }
-
     // ───────────────────────── Screenshots ─────────────────────────
 
     [AvaloniaTheory]

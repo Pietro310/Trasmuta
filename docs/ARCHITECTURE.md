@@ -10,7 +10,7 @@
  context    │ Home drop zone ─────────────────────────────┘                                      │
  menu       │                                              ▼                                      │
             │                                    ConversionService ──► ToastWindow (progress)     │
-            │ MainWindow (settings pages) ◄──► UserDataStore (JSON in %APPDATA%\Filee)            │
+            │ MainWindow (settings pages) ◄──► UserDataStore (JSON in %APPDATA%\Trasmuta)            │
             └──────────────────────────────────────────────┬──────────────────────────────────────┘
                                                            ▼
             ┌──────────────────────────── Filee.Core ───────────────────────────────────────────┐
@@ -60,7 +60,7 @@ covers it; click and key gestures don't, as they read the file manager's selecti
 `DraggedFiles.Read` asks `BrowserDrags` (App, reads Avalonia's drag data) first; `BrowserDrag` (Core, pure rules)
 decides what in the drag is a file:
 
-| Source | What the drag carries | What Filee takes |
+| Source | What the drag carries | What Trasmuta takes |
 | --- | --- | --- |
 | Chrome / Edge, Windows | the picture as a virtual file (`FileGroupDescriptorW` + `FileContents`, which Avalonia 12 gives as a storage item without a local path), a `.url` virtual file for links, `UniformResourceLocatorW`, `text/x-moz-url`, `HTML Format` | the picture's own bytes; for a link, its address |
 | Firefox, Windows | the picture written to `%TEMP%` (`CF_HDROP`), `text/x-moz-url`, file promise formats | the temporary copy (a local file in the temp folder *and* a web address on the drag) |
@@ -69,10 +69,10 @@ decides what in the drag is a file:
 
 Rules, in order: files handed over with their bytes (never `.url` shortcuts or programs); a picture (an HTML fragment
 that is one `<img>` and no text, or a Firefox file promise); a `DownloadURL` a page sets; links only when the address
-ends in an extension Filee converts and isn't a web page (`.html`, `.php`, none); last, picture pixels for a `blob:`
+ends in an extension Trasmuta converts and isn't a web page (`.html`, `.php`, none); last, picture pixels for a `blob:`
 picture. Plain text is never read. `data:` addresses are decoded.
 
-Until the conversion runs, the files stand as **placeholders** (`WebDrop`): paths in `%TEMP%\Filee\web\<drop>\drop\<n>\`
+Until the conversion runs, the files stand as **placeholders** (`WebDrop`): paths in `%TEMP%\Trasmuta\web\<drop>\drop\<n>\`
 named like the file will be, so the donut picks the profile by extension without touching the network. No HEAD request
 is made: a picture without an extension stands as `.jpg` and a link without one isn't offered. `ConversionService.Start`
 gives the job a `WebDropFetcher` (`ISourceFetcher`): `JobQueue` saves every source first (half of its progress), then
@@ -165,7 +165,7 @@ Bump `AppSettings.CurrentSchemaVersion` and add a step to `SettingsMigrations` w
 
 ## "What's new" slides
 
-After an update, Filee shows the new version's features once as slides (an animation or picture, a title, a line or
+After an update, Trasmuta shows the new version's features once as slides (an animation or picture, a title, a line or
 two). The pieces:
 
 - `Assets/WhatsNew/<version>/slides.json` lists the slides: `id`, `media` (a file next to it), and the i18n keys of
@@ -183,7 +183,7 @@ two). The pieces:
   current one visible, so the height is the tallest slide's and the window doesn't jump.
 - `WhatsNewWindow` adds the card, ✕, Previous / Next ("Get started" on the last slide), ←/→ and Esc.
 - `WhatsNewService` decides at start-up, before the first run is marked complete:
-  - a fresh install (first run not completed) needs no slides, as the first-run setup introduces Filee; its
+  - a fresh install (first run not completed) needs no slides, as the first-run setup introduces Trasmuta; its
     version is stored as seen;
   - otherwise `AppSettings.WhatsNewSeenVersion` (null in settings older than the slides, which means "updated")
     is compared with the running version, and the newest deck after it, up to this version, is shown;
@@ -191,7 +191,7 @@ two). The pieces:
     stored as seen quietly.
   The version is stored when the window opens. A start in the background (`--background` at sign-in, or the
   Explorer menu) keeps the deck until `WindowService.ShowMain` raises `MainShown`; the installer starts an updated
-  Filee with `--background --whats-new`, which shows it at once. About → "What's new in Filee X" opens the newest
+  Trasmuta with `--background --whats-new`, which shows it at once. About → "What's new in Trasmuta X" opens the newest
   deck again.
 
 The `<!-- update -->` lines of CHANGELOG.md are the other half: the update card shows them for a version that isn't
@@ -213,7 +213,7 @@ installed yet; the slides introduce the installed one. The demo animations are r
   file with an old output name is accepted again. A failure to save this state is logged because results may be
   retried after restart. Removing a rule's state file also forgets its results.
   The tray app runs one per rule (`WatchFolderService`, Settings → Watch folders, conversions in the toast and
-  history); `filee watch` runs one on its own, with a stable `cli` rule identity across command restarts.
+  history); `trasmuta watch` runs one on its own, with a stable `cli` rule identity across command restarts.
 
 ## Platform code
 
@@ -221,47 +221,47 @@ Everything OS-specific goes through `IPlatformServices` (`Filee.Core/Platform`).
 `Filee.Platform.Windows`; macOS will get its own project. Global input uses SharpHook on both.
 
 Home → Recent conversions opens a result with `OpenFile` (the shell on Windows, `open` on macOS, `xdg-open` on Linux,
-so a file is handed to its app and never started itself; only formats Filee knows are offered) and, where
+so a file is handed to its app and never started itself; only formats Trasmuta knows are offered) and, where
 `SupportsOpenWith` (Windows), the shell's "Open with" dialog (`SHOpenWithDialog`, on a thread of its own because it
 blocks until closed). The cards' pictures come from `HistoryThumbnails`: Skia decodes them off the UI thread, scaled
 down while decoding where the format allows, from a copy read in one go so the file isn't held open, and a small cache
 keeps them while the files are unchanged.
 
-On macOS, files reach Filee from file managers other than Finder too (issue #160). The "Convert with Filee" service
+On macOS, files reach Trasmuta from file managers other than Finder too (issue #160). The "Convert with Trasmuta" service
 (`MacOSServicesProvider`) and the donut's drags (`DraggedFiles`) read file URLs first, then the older
 `NSFilenamesPboardType` array of paths (`PasteboardPaths`); the service also takes plain-text lines that are absolute
 paths. The donut registers those types with AppKit next to Avalonia's own, so such a drag reaches it, and a drag or
 service request without readable files is logged with the types it offered. File promises (`NSFilePromiseProvider`)
-can't be received through Avalonia; for a browser drag Filee reads the address and HTML it also offers, which the donut
+can't be received through Avalonia; for a browser drag Trasmuta reads the address and HTML it also offers, which the donut
 registers too (see "Files dragged from a web browser"). A click-mode donut opened for a later launch or the service forgives one loss of
-focus within a second of opening (`ActivationGrace`): Filee becoming the active app can take focus away from it.
+focus within a second of opening (`ActivationGrace`): Trasmuta becoming the active app can take focus away from it.
 
-The donut, the toast and the notices are transparent windows. On Windows Filee keeps Avalonia's rendering defaults
+The donut, the toast and the notices are transparent windows. On Windows Trasmuta keeps Avalonia's rendering defaults
 (ANGLE on Direct3D 11 composed through WinUI composition, then DirectComposition, then the window's redirection
 surface; software rendering when Direct3D 11 fails): each of them keeps per-pixel transparency. The log says what was
 picked (`Rendering: AngleEgl with WinUIComposition`), lists the graphics adapters, carries Avalonia's own errors from
 starting the GPU paths (`AvaloniaLogForwarder`), and describes each kind of transparent window the first time it
 shows (`TransparentWindows`). A system backdrop (Acrylic, Mica) or an accent blur on such a window turns its
-transparent area into a blurred rectangle (issue #269). Filee sets neither, so one found there came from another
+transparent area into a blurred rectangle (issue #269). Trasmuta sets neither, so one found there came from another
 program: each time the window shows, a backdrop is set back to none and the accent (which can't be read back) is
 turned off. For a report that still shows the wrong thing, the `FILEE_RENDERING` environment variable picks another
 way to draw (`WindowsRendering`): `dcomp` (skip WinUI composition), `redirection` (Direct3D into the redirection
-surface) or `software` (no GPU); unset or `auto` keeps the defaults. Filee reads it at start.
+surface) or `software` (no GPU); unset or `auto` keeps the defaults. Trasmuta reads it at start.
 
 ## Explorer integration
 
-Settings → General → "Show “Convert with Filee” in the Explorer context menu" (`AppSettings.ContextMenuEnabled`) is
+Settings → General → "Show “Convert with Trasmuta” in the Explorer context menu" (`AppSettings.ContextMenuEnabled`) is
 applied by `WindowsPlatformServices.SetContextMenu` at start-up and whenever settings change (installed builds only):
 
-- **Classic verb** `HKCU\Software\Classes\*\shell\Filee` (`Filee.exe --convert "%1"`, one process per file; the running
+- **Classic verb** `HKCU\Software\Classes\*\shell\Trasmuta` (`Filee.exe --convert "%1"`, one process per file; the running
   instance collects them through `SingleInstance`) and a **Send To** shortcut. Per user, no admin rights. On Windows 10
   this is the entry; on Windows 11 it sits under "Show more options".
 - **Windows 11 top-level entry** (optional): an `IExplorerCommand` in `FileeExplorerMenu.dll`
   (`src/Filee.ExplorerMenu`, plain C, no C runtime) declared by the sparse package `FileeExplorerMenu.msix`
   (`ExplorerMenuPackage.CreateManifest`: `desktop4:FileExplorerContextMenus`, `desktop5:ItemType Type="*"`,
   `com:SurrogateServer`, `uap10:AllowExternalContent`, `AppListEntry="none"`). Both files ship next to Filee.exe and the
-  package's external location is the install folder (`C:\Program Files\Filee` by default).
-  - The package is **unsigned** (publisher contains `OID.2.25.311729368913984317654407730594956997722=1`; Filee has no
+  package's external location is the install folder (`C:\Program Files\Trasmuta` by default).
+  - The package is **unsigned** (publisher contains `OID.2.25.311729368913984317654407730594956997722=1`; Trasmuta has no
     code-signing certificate). Windows only registers an unsigned package with executable content **with
     administrator rights** (it installs it for all users); a per-user attempt fails with 0x80073D2B "an unsigned
     package cannot include Executable activations". Setup (`src/Filee.Setup`) has those rights anyway and
@@ -272,12 +272,12 @@ applied by `WindowsPlatformServices.SetContextMenu` at start-up and whenever set
     don't need a new prompt: the DLL is loaded from the install folder and updated with the app. Bump it only when the
     manifest changes; the page then offers to add the entry again ("Outdated").
   - The DLL shows the entry only for files (not folders or items inside ZIP folders) and only while
-    `%APPDATA%\Filee\explorer-menu.txt` exists. The app writes the title in the UI language there while the setting is
+    `%APPDATA%\Trasmuta\explorer-menu.txt` exists. The app writes the title in the UI language there while the setting is
     on and deletes it when the setting is off, so switching the setting takes effect without re-registering. While the
     package is registered the classic verb is removed (Windows lists packaged commands under "Show more options" too).
   - Invoke starts `Filee.exe --convert "<path>"…` next to the DLL and returns at once. Selections longer than a
     command line go through `%TEMP%\Filee-convert-*.txt` (`--convert-list`, one path per line), which the app deletes.
-  - Updates: Setup asks the running Filee to exit (`Filee.exe --quit`), then renames a `FileeExplorerMenu.dll` that
+  - Updates: Setup asks the running Trasmuta to exit (`Filee.exe --quit`), then renames a `FileeExplorerMenu.dll` that
     Explorer still has loaded into its backup folder (Windows allows renaming a loaded DLL, not replacing or deleting
     it) and has Windows delete the old copy at the next restart, so updating needs no restart. An update keeps the
     registration as it was and refreshes it. Uninstall runs `Filee.exe --uninstall-cleanup` (`UninstallCleanup`): it
@@ -297,9 +297,9 @@ the entry up for new menus; if not, restart Explorer. To remove it by hand:
 
 ## Windows installer
 
-`Filee-<version>-win-Setup.exe` is Filee's own installer, `src/Filee.Setup` (it replaced the Inno Setup script of
+`Filee-<version>-win-Setup.exe` is Trasmuta's own installer, `src/Filee.Setup` (it replaced the Inno Setup script of
 1.x). It is an Avalonia program with the app's look and translations: it links `Styles/Soft.axaml` (which therefore
-styles only Avalonia's own controls; Filee's controls are in `Controls.axaml`), `SoftPalette` (accent, radii, font
+styles only Avalonia's own controls; Trasmuta's controls are in `Controls.axaml`), `SoftPalette` (accent, radii, font
 order), `AppLanguages` and `Assets/i18n/*.json` (Setup's texts are the `installer.*` keys). To stay small it uses
 Windows' own UI fonts (Segoe UI, Nirmala UI and the UI language's CJK font first; titles bold, as those CJK fonts
 have no semibold) instead of the app's embedded Noto fonts.
@@ -307,12 +307,12 @@ have no semibold) instead of the app's embedded Noto fonts.
 - **Look**: one borderless 640×420 card (`SetupWindow`, its own window buttons, drag to move) whose states crossfade
   (`Views/StateViews.axaml`): Welcome (the logo assembling itself, `DonutLogo`; one Install button; an Options sheet
   sliding up with the language, folder, options and engines), Progress (the new version's "What's new" slides, a thin
-  `ShimmerBar`), Done (`CheckBurst`, "Launch Filee"), Failed ("Copy details") and the uninstaller's states.
+  `ShimmerBar`), Done (`CheckBurst`, "Launch Trasmuta"), Failed ("Copy details") and the uninstaller's states.
   `SoftBackdrop` draws slowly drifting accent blobs behind it. The slides are the app's (`SlideShow`, `AnimatedImage`,
   `SlideDeck` and `Assets/WhatsNew`, linked): the newest deck up to the version being installed, advancing every 6 s.
   Every animation runs only while the window is visible and not minimized (`FrameLoop`) and is a still picture when
   Windows' "Show animations" is off (`SetupMotion`). `/SILENT` shows only the progress card, without slides. After an
-  update Setup starts Filee with `--background --whats-new`, so the slides show once in the app as well.
+  update Setup starts Trasmuta with `--background --whats-new`, so the slides show once in the app as well.
 
 - **Build** (`build/build-installer.ps1`): Setup is published as one self-contained, trimmed file
   (`-p:FileeSetupPublish=true`), so it runs on Windows 10 1809+ x64 without .NET. `build/tools/make-setup.cs` appends
@@ -326,14 +326,14 @@ have no semibold) instead of the app's embedded Noto fonts.
   and still couldn't link SkiaSharp's native libraries in.
 - **Rights**: Setup starts unelevated (asInvoker) and, for an install for all users, starts itself again with
   administrator rights (one UAC prompt) and waits. The elevated copy writes what to start at the end into a file
-  (`/LAUNCHFILE`), and the unelevated one starts Filee from it as the signed-in user. Elevated without such a parent
-  (run as administrator, a package manager), it starts Filee with Explorer's token.
-- **Install** (`Installer`): checks the free space and the payload's hash first, closes Filee (`--quit`, then ends
+  (`/LAUNCHFILE`), and the unelevated one starts Trasmuta from it as the signed-in user. Elevated without such a parent
+  (run as administrator, a package manager), it starts Trasmuta with Explorer's token.
+- **Install** (`Installer`): checks the free space and the payload's hash first, closes Trasmuta (`--quit`, then ends
   what still runs from the folder), unpacks into `<folder>\~setup-*\new` checking every file, checks that every
   program finds the Microsoft C++ runtime it imports (next to it or in System32; `RuntimeCheck`), then swaps the files
   in (`FileSwap`: replaced and obsolete files are renamed into a backup, which works for files in use) and writes the
-  uninstall entry, the shortcuts and PATH. Any failure until then puts everything back. Filee's own settings (Explorer
-  menu, start at sign-in, engines, a picked language) are handed to Filee on its command line, as before.
+  uninstall entry, the shortcuts and PATH. Any failure until then puts everything back. Trasmuta's own settings (Explorer
+  menu, start at sign-in, engines, a picked language) are handed to Trasmuta on its command line, as before.
 - **Updates from 1.x**: the uninstall key stays `{C8686E06-8327-40A2-B0F7-3DEDD61D9248}_is1` (Inno Setup's AppId), so
   Apps & Features keeps one Filee. `PreviousInstall` reads the folder and choices of an Inno Setup installation; an
   update keeps the folder and what is registered now (desktop shortcut, PATH, the top-level menu package), removes
@@ -342,7 +342,7 @@ have no semibold) instead of the app's embedded Noto fonts.
 - **Uninstall**: `uninstall.exe` is Setup without its payload. Run from the install folder it copies itself to
   `%TEMP%` and waits for the copy, which removes what `uninstall.json` lists (other files in the folder stay), the
   shortcuts, the PATH entry and the key. Files in use are moved out and deleted at the next restart.
-- **Command line**: Inno Setup's switches (`SetupOptions`, documented at the top of the file), because Filee 1.x
+- **Command line**: Inno Setup's switches (`SetupOptions`, documented at the top of the file), because Trasmuta 1.x
   updates itself with `/SILENT /NORESTART` and winget passes `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART`. Exit codes as
   Inno Setup's: 0 done, 1 could not start, 2 cancelled before installing (also a declined UAC prompt), 4 failed.
 - **Testing**: `Filee.Setup.Tests` runs installs, updates (also over a simulated 1.x installation) and uninstalls

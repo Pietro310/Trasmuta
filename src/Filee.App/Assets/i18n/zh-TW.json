@@ -1,6 +1,6 @@
 {
   "app.name": "Filee",
-  "app.tagline": "拖一拖，放一放，轉換完成。",
+  "app.tagline": "Every file, the shape you need.",
 
   "nav.home": "首頁",
   "nav.general": "一般",
@@ -908,5 +908,11 @@
   "whats_new.2_0_0.languages.title": "支援更多語言",
   "whats_new.2_0_0.languages.text": "在英語、韓語、中文和波蘭語之外，新增西班牙語、印地語、日語、俄語、阿拉伯語和巴西葡萄牙語。",
   "whats_new.2_0_0.more.title": "還有更多",
-  "whats_new.2_0_0.more.text": "可以只把一個環形工具列還原為初始設定、搜尋全部歷史記錄，並透過 LibreOffice 轉換古吉拉特語、印地語或阿拉伯語文件。"
+  "whats_new.2_0_0.more.text": "可以只把一個環形工具列還原為初始設定、搜尋全部歷史記錄，並透過 LibreOffice 轉換古吉拉特語、印地語或阿拉伯語文件。",
+  "theme.layout": "Menu style",
+  "theme.layout.Ring": "Ring",
+  "theme.layout.Fan": "Fan",
+  "theme.layout.List": "List",
+  "theme.layout.Grid": "Grid",
+  "theme.layout_hint": "How the conversion menu opens at the cursor. In every style the keys 1–9 pick a format and Esc closes the menu."
 }

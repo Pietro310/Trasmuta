@@ -56,7 +56,7 @@ Rules:
   (pages), pass a suffix: `Allocate("png", $"_p{page}")`.
 - Scratch files go to `step.WorkDirectory` (deleted after the job).
 - External programs: use `ProcessRunner.RunAsync` (timeout + cancellation + no shell) and find them with
-  `EngineEnvironment.FindBundled("<folder>")` only. Filee never uses programs installed on the system (nothing from
+  `EngineEnvironment.FindBundled("<folder>")` only. Trasmuta never uses programs installed on the system (nothing from
   `PATH`, no other application's install folder): a program is either bundled with the installer (small, pinned in
   `engines.json` and fetched by `build/fetch-engines.ps1`) or an optional download the user installs in Settings →
   Engines (an `EnginePackage` in `EngineDownloads.Packages`).

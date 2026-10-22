@@ -61,14 +61,14 @@ public sealed partial class UpdateService : ObservableObject
         _log = log;
         // Downloads use their own stall timeout (StallTimeout); this one covers the API call and the response headers.
         _http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
-        _http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Filee", CurrentVersion));
+        _http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(Filee.Core.AppIdentity.Name, CurrentVersion));
         _http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
     }
 
     /// <summary>GitHub repository from Directory.Build.props (FileeRepositoryUrl).</summary>
     public static string RepositoryUrl =>
         typeof(UpdateService).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
-            .FirstOrDefault(a => a.Key == "RepositoryUrl")?.Value ?? "https://github.com/KnifeLemon/Filee";
+            .FirstOrDefault(a => a.Key == "RepositoryUrl")?.Value ?? "https://github.com/Pietro310/Trasmuta";
 
     public static string CurrentVersion =>
         typeof(UpdateService).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]

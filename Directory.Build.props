@@ -14,13 +14,13 @@
          parameters of a member is fine (CS1573). -->
     <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
 
-    <Version>2.0.0</Version>
-    <Product>Filee</Product>
-    <Authors>Filee contributors</Authors>
-    <Copyright>Copyright (c) Filee contributors</Copyright>
+    <Version>1.0.0</Version>
+    <Product>Trasmuta</Product>
+    <Authors>Pietro310</Authors>
+    <Copyright>Copyright (c) 2026 Pietro310</Copyright>
 
-    <!-- Single source of truth for the GitHub repository (used by the updater and the About page). -->
-    <FileeRepositoryUrl>https://github.com/KnifeLemon/Filee</FileeRepositoryUrl>
+    <!-- Where Trasmuta would be published. Nothing uses it while update checks are off (UpdateService.UpdatesEnabled). -->
+    <FileeRepositoryUrl>https://github.com/Pietro310/Trasmuta</FileeRepositoryUrl>
     <RepositoryUrl>$(FileeRepositoryUrl)</RepositoryUrl>
   </PropertyGroup>
 </Project>

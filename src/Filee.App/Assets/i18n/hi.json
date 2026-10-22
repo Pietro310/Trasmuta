@@ -1,6 +1,6 @@
 {
   "app.name": "Filee",
-  "app.tagline": "खींचें, छोड़ें, कन्वर्ट हो गया।",
+  "app.tagline": "Every file, the shape you need.",
   "nav.home": "होम",
   "nav.general": "सामान्य",
   "nav.triggers": "शॉर्टकट",
@@ -888,5 +888,11 @@
   "whats_new.2_0_0.languages.title": "Filee अब और भाषाएँ बोलता है",
   "whats_new.2_0_0.languages.text": "अंग्रेज़ी, कोरियाई, चीनी और पोलिश के साथ अब स्पैनिश, हिन्दी, जापानी, रूसी, अरबी और ब्राज़ीलियाई पुर्तगाली भी।",
   "whats_new.2_0_0.more.title": "और भी थोड़ा",
-  "whats_new.2_0_0.more.text": "एक ही डोनट को डिफ़ॉल्ट पर रीसेट करें, पूरा इतिहास खोजें, और गुजराती, हिन्दी या अरबी दस्तावेज़ LibreOffice से बदलें।"
+  "whats_new.2_0_0.more.text": "एक ही डोनट को डिफ़ॉल्ट पर रीसेट करें, पूरा इतिहास खोजें, और गुजराती, हिन्दी या अरबी दस्तावेज़ LibreOffice से बदलें।",
+  "theme.layout": "Menu style",
+  "theme.layout.Ring": "Ring",
+  "theme.layout.Fan": "Fan",
+  "theme.layout.List": "List",
+  "theme.layout.Grid": "Grid",
+  "theme.layout_hint": "How the conversion menu opens at the cursor. In every style the keys 1–9 pick a format and Esc closes the menu."
 }

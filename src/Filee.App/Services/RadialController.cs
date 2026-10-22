@@ -208,8 +208,8 @@ public sealed class RadialController(
         var extensions = FormatRequest.UnknownExtensions(viewModel.Files).Where(_formatRequestsOffered.Add).ToList();
         if (extensions.Count == 0)
             return;
+        // Trasmuta has no public tracker to request formats on: only the log notes them.
         log.LogInformation("Donut closed on files Filee can't read: {Extensions}", FormatRequest.Label(extensions));
-        windows.ShowFormatRequestNotice(extensions);
     }
 
     private RadialWindow EnsureWindow()

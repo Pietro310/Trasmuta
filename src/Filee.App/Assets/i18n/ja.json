@@ -1,6 +1,6 @@
 {
   "app.name": "Filee",
-  "app.tagline": "ドラッグ。ドロップ。\n変換完了。",
+  "app.tagline": "Every file, the shape you need.",
   "nav.home": "ホーム",
   "nav.general": "一般",
   "nav.triggers": "ショートカット",
@@ -888,5 +888,11 @@
   "whats_new.2_0_0.languages.title": "対応言語が増えました",
   "whats_new.2_0_0.languages.text": "英語、韓国語、中国語、ポーランド語に、スペイン語、ヒンディー語、日本語、ロシア語、アラビア語、ブラジルポルトガル語が加わりました。",
   "whats_new.2_0_0.more.title": "ほかにも",
-  "whats_new.2_0_0.more.text": "ドーナツを 1 つだけ既定に戻す、履歴全体を検索する、グジャラート語・ヒンディー語・アラビア語の文書を LibreOffice で変換する、など。"
+  "whats_new.2_0_0.more.text": "ドーナツを 1 つだけ既定に戻す、履歴全体を検索する、グジャラート語・ヒンディー語・アラビア語の文書を LibreOffice で変換する、など。",
+  "theme.layout": "Menu style",
+  "theme.layout.Ring": "Ring",
+  "theme.layout.Fan": "Fan",
+  "theme.layout.List": "List",
+  "theme.layout.Grid": "Grid",
+  "theme.layout_hint": "How the conversion menu opens at the cursor. In every style the keys 1–9 pick a format and Esc closes the menu."
 }

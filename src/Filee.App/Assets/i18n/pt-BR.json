@@ -1,6 +1,6 @@
 {
   "app.name": "Filee",
-  "app.tagline": "Arraste, solte, convertido.",
+  "app.tagline": "Every file, the shape you need.",
 
   "nav.home": "Início",
   "nav.general": "Geral",
@@ -908,5 +908,11 @@
   "whats_new.2_0_0.languages.title": "O Filee fala mais idiomas",
   "whats_new.2_0_0.languages.text": "Espanhol, hindi, japonês, russo, árabe e português do Brasil se juntam ao inglês, coreano, chinês e polonês.",
   "whats_new.2_0_0.more.title": "E um pouco mais",
-  "whats_new.2_0_0.more.text": "Restaure um único menu aos padrões, pesquise todo o histórico e converta documentos em guzerate, hindi ou árabe pelo LibreOffice."
+  "whats_new.2_0_0.more.text": "Restaure um único menu aos padrões, pesquise todo o histórico e converta documentos em guzerate, hindi ou árabe pelo LibreOffice.",
+  "theme.layout": "Menu style",
+  "theme.layout.Ring": "Ring",
+  "theme.layout.Fan": "Fan",
+  "theme.layout.List": "List",
+  "theme.layout.Grid": "Grid",
+  "theme.layout_hint": "How the conversion menu opens at the cursor. In every style the keys 1–9 pick a format and Esc closes the menu."
 }

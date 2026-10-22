@@ -59,7 +59,7 @@ public static class AppHost
             EngineRegistry.FindTiffMerger(sp.GetRequiredService<IReadOnlyList<IConverter>>())));
 
         // Files dragged from a browser with only an address are downloaded without the browser's cookies.
-        services.AddSingleton(_ => new WebDownloader(userAgent: $"Filee/{typeof(AppHost).Assembly.GetName().Version?.ToString(3)}"));
+        services.AddSingleton(_ => new WebDownloader(userAgent: $"{Filee.Core.AppIdentity.Name}/{typeof(AppHost).Assembly.GetName().Version?.ToString(3)}"));
         services.AddSingleton<EngineDownloadService>();
         services.AddSingleton<PresetAvailability>();
         services.AddSingleton<RadialViewModel>();
