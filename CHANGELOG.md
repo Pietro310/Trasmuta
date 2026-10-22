@@ -9,6 +9,16 @@ l'app la mostra nell'avviso di aggiornamento. Il blocco nascosto "update" (invis
   en: …               una riga di riassunto per l'avviso (in inglese, come l'interfaccia); se ne possono mettere più
 -->
 
+## 1.0.3
+
+<!-- update
+level: recommended
+en: Fixes Trasmuta closing on its own when the app is moved or replaced while it runs.
+-->
+
+- Trasmuta non si chiude più da sola se l'app viene spostata o sostituita mentre è aperta: un errore nella scrittura
+  del registro non può più interromperla.
+
 ## 1.0.2
 
 <!-- update

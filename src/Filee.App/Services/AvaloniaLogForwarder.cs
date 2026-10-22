@@ -34,12 +34,21 @@ internal sealed class AvaloniaLogForwarder(ILogSink? inner, Microsoft.Extensions
 
     public void Log(LogEventLevel level, string area, object? source, string messageTemplate, params object?[] propertyValues)
     {
-        if (inner?.IsEnabled(level, area) == true)
-            inner.Log(level, area, source, messageTemplate, propertyValues);
-        if (!Forwards(level, area) || Interlocked.Increment(ref _lines) > MaxLines)
-            return;
-        log.Log(level >= LogEventLevel.Error ? LogLevel.Error : LogLevel.Warning, "Avalonia [{Area}]: {Message}",
-            area, Format(messageTemplate, propertyValues));
+        // Logging must never take the app down: Avalonia logs from inside layout and bindings, and an exception thrown
+        // here (the trace sink's assembly gone because the app was moved or replaced while running) ended the process.
+        try
+        {
+            if (inner?.IsEnabled(level, area) == true)
+                inner.Log(level, area, source, messageTemplate, propertyValues);
+            if (!Forwards(level, area) || Interlocked.Increment(ref _lines) > MaxLines)
+                return;
+            log.Log(level >= LogEventLevel.Error ? LogLevel.Error : LogLevel.Warning, "Avalonia [{Area}]: {Message}",
+                area, Format(messageTemplate, propertyValues));
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            // Nothing to report it to: the logging itself failed.
+        }
     }
 
     /// <summary>Fills "{0}" or "{Name}" holes in order, as Avalonia's templates use either.</summary>
