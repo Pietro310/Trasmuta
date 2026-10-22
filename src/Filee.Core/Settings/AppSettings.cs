@@ -174,6 +174,9 @@ public sealed class AppSettings
     [JsonConverter(typeof(IconPreferenceJsonConverter))]
     public bool ShowMenuBarIcon { get; set; } = true;
 
+    /// <summary>macOS: the user said "Not now" to moving Trasmuta.app to Applications; the start doesn't ask again.</summary>
+    public bool MoveToApplicationsDeclined { get; set; }
+
     /// <summary>Newest version the user was already told about, so the update notice shows once per release.</summary>
     public string? NotifiedUpdateVersion { get; set; }
 

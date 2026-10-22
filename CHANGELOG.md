@@ -9,6 +9,28 @@ l'app la mostra nell'avviso di aggiornamento. Il blocco nascosto "update" (invis
   en: …               una riga di riassunto per l'avviso (in inglese, come l'interfaccia); se ne possono mettere più
 -->
 
+## 1.0.4
+
+<!-- update
+level: recommended
+en: Opened from Downloads, Trasmuta offers to move itself to Applications, where it can update itself.
+en: New versions are noticed sooner (every hour and when the Mac wakes), with a system notification and a dot on the menu bar icon.
+it: Se è aperta da Download, Trasmuta propone di spostarsi in Applicazioni, dove può aggiornarsi da sola.
+it: Le nuove versioni vengono notate prima (ogni ora e al risveglio del Mac), con una notifica di sistema e un pallino sull'icona nella barra dei menu.
+-->
+
+- **Spostamento in Applicazioni**: se Trasmuta è aperta da Download (o da un'immagine disco), all'avvio propone di
+  spostarsi in Applicazioni e si riapre da lì. Da Download macOS la esegue da una copia di sola lettura e non può
+  aggiornarsi da sola.
+- **Aggiornamenti notati prima**: il controllo avviene ogni ora (prima ogni 6), all'apertura della finestra e al
+  risveglio del Mac. Quando esce una versione nuova arriva una **notifica di macOS**, e l'icona nella barra dei menu e
+  quella nel Dock mostrano un pallino.
+- **Avviso più chiaro quando non può aggiornarsi da sola**: invece di aprire GitHub senza spiegazioni, l'avviso dice
+  perché. Se è in Download il pulsante diventa **Sposta e aggiorna** (si sposta in Applicazioni, si riapre e si
+  aggiorna); se il tuo account non può modificare Applicazioni, spiega come aggiornarla a mano.
+- **Nuovo file .dmg** per la prima installazione: si apre una finestra in cui basta trascinare Trasmuta su
+  Applicazioni. Gli zip restano per l'aggiornamento automatico.
+
 ## 1.0.3
 
 <!-- update

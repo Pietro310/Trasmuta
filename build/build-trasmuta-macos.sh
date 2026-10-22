@@ -1,10 +1,13 @@
 #!/bin/sh
 # Builds Trasmuta.app (Apple Silicon or Intel) and, with --install, copies it to ~/Applications; with --zip, packs
-# it as Trasmuta-<version>-<runtime>.zip for a release. A shell version of the macOS part of build-portable.ps1.
+# it as Trasmuta-<version>-<runtime>.zip for a release (what the in-app update downloads); with --dmg, also as
+# Trasmuta-<version>-<runtime>.dmg, the disk image for first installs: a window where the app is dragged onto
+# Applications. A shell version of the macOS part of build-portable.ps1.
 #
-#   build/build-trasmuta-macos.sh            build into $TMPDIR/trasmuta-build/Trasmuta.app
-#   build/build-trasmuta-macos.sh --install  build, then replace ~/Applications/Trasmuta.app
-#   build/build-trasmuta-macos.sh --zip      build, then pack the zip next to it (what the Release workflow does)
+#   build/build-trasmuta-macos.sh                build into $TMPDIR/trasmuta-build/Trasmuta.app
+#   build/build-trasmuta-macos.sh --install      build, then replace ~/Applications/Trasmuta.app
+#   build/build-trasmuta-macos.sh --zip --dmg    build, then pack the zip and the dmg next to it (what the Release
+#                                                workflow does; --dmg needs dmgbuild: pip install dmgbuild)
 #
 # Optional settings (the Release workflow sets them):
 #   TRASMUTA_RUNTIME  osx-arm64 or osx-x64 (default: this Mac's)
@@ -12,7 +15,18 @@
 #                     Default: those of an installed Filee.app, else none (the app offers downloads instead).
 #   TRASMUTA_OUT      where to build (default: $TMPDIR/trasmuta-build)
 #   TRASMUTA_VERSION  version to stamp instead of Directory.Build.props' (to try an update from an older one)
+#   TRASMUTA_DMGBUILD the dmgbuild command (default: dmgbuild)
 set -eu
+
+pack_zip=0 pack_dmg=0 install=0
+for option in "$@"; do
+    case "$option" in
+        --zip) pack_zip=1 ;;
+        --dmg) pack_dmg=1 ;;
+        --install) install=1 ;;
+        *) echo "Unknown option: $option" >&2; exit 2 ;;
+    esac
+done
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)
 export PATH="/usr/local/share/dotnet:$PATH" DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -85,7 +99,7 @@ codesign --force --sign - --entitlements "$entitlements" -r="$requirement" "$app
 codesign --verify --deep --strict "$app"
 echo "Built $app ($version, $runtime)"
 
-if [ "${1:-}" = "--zip" ]; then
+if [ "$pack_zip" = 1 ]; then
     zip="$out/Trasmuta-$version-$runtime.zip"
     rm -f "$zip"
     # ditto keeps the signature (stored in extended attributes for the assemblies) and the executable bits.
@@ -93,7 +107,21 @@ if [ "${1:-}" = "--zip" ]; then
     echo "Packed $zip"
 fi
 
-if [ "${1:-}" = "--install" ]; then
+if [ "$pack_dmg" = 1 ]; then
+    dmg="$out/Trasmuta-$version-$runtime.dmg"
+    background="$out/dmg-background.tiff"
+    rm -f "$dmg" "$background"
+    # One TIFF holding both sizes, so the window's background is sharp on Retina screens too.
+    tiffutil -cathidpicheck "$root/installer/macos/dmg-background.png" "$root/installer/macos/dmg-background@2x.png" \
+        -out "$background"
+    ${TRASMUTA_DMGBUILD:-dmgbuild} -s "$root/installer/macos/dmg-settings.py" -D app="$app" -D background="$background" \
+        Trasmuta "$dmg"
+    hdiutil verify "$dmg" >/dev/null
+    rm -f "$background"
+    echo "Packed $dmg"
+fi
+
+if [ "$install" = 1 ]; then
     osascript -e 'quit app id "com.trasmuta.app"' 2>/dev/null || true
     rm -rf "$HOME/Applications/Trasmuta.app"
     mkdir -p "$HOME/Applications"

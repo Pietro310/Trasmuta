@@ -1,5 +1,6 @@
 // Application start-up: builds services, applies settings, wires global gestures to the donut toolbar.
 
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -118,14 +119,28 @@ public partial class App : Application
         // macOS: ask for Accessibility with the system's own alert when the user opened Filee (not at sign-in) and
         // a drag gesture is on. The home page keeps a reminder until it is given. Asked once the main window is up:
         // asked earlier, the alert ends up behind it.
-        if (OperatingSystem.IsMacOS() && triggers.NeedsPermission && !Program.Options.Background
-            && platform is Filee.Platform.MacOS.MacOSPlatformServices mac
-            && store.Settings.Triggers.Any(t => t.Enabled && t.Kind == TriggerKind.Drag))
-            DispatcherTimer.RunOnce(() =>
+        void AskForAccessibility()
+        {
+            if (OperatingSystem.IsMacOS() && triggers.NeedsPermission && !Program.Options.Background
+                && platform is Filee.Platform.MacOS.MacOSPlatformServices mac
+                && store.Settings.Triggers.Any(t => t.Enabled && t.Kind == TriggerKind.Drag))
+                DispatcherTimer.RunOnce(() =>
+                {
+                    if (OperatingSystem.IsMacOS() && triggers.NeedsPermission)
+                        mac.RequestAccessibilityPermission();
+                }, TimeSpan.FromSeconds(1.5));
+        }
+        // macOS: opened from Downloads or a disk image, Trasmuta offers to move itself to Applications first (the
+        // moved copy asks for Accessibility; macOS would tie the permission to this copy's place otherwise).
+        if (OperatingSystem.IsMacOS() && MacAppMove.ShouldOffer && !Program.Options.Background && !Program.Options.Update
+            && !store.Settings.MoveToApplicationsDeclined)
+            DispatcherTimer.RunOnce(async () =>
             {
-                if (OperatingSystem.IsMacOS() && triggers.NeedsPermission)
-                    mac.RequestAccessibilityPermission();
-            }, TimeSpan.FromSeconds(1.5));
+                if (!await OfferMoveToApplicationsAsync(store, log))
+                    AskForAccessibility();
+            }, TimeSpan.FromSeconds(1));
+        else
+            AskForAccessibility();
 
         store.SettingsChanged += (_, _) => ApplySettings(store.Settings);
 
@@ -167,7 +182,7 @@ public partial class App : Application
                             log.LogWarning("Could not restore the macOS Dock visibility policy after reopening Filee");
                     });
             };
-        WatchForUpdates(store);
+        WatchForUpdates(store, log);
         // Filee runs as administrator while Explorer doesn't (an installer started "as administrator" started it):
         // say so once, next to the tray, and on the Home page for as long as it lasts.
         if (AppHost.Get<ElevationService>().ShellCannotReachFilee)
@@ -186,12 +201,45 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Looks for new releases in the background. A new version shows up at the bottom of the navigation and in the
-    /// tray menu; the bottom-right notice appears once per version.
+    /// Asks whether to move Trasmuta.app to Applications (<see cref="MacAppMove"/>) and does it: the moved copy opens
+    /// and this one quits. False when the user said no or the move failed.
     /// </summary>
-    private static void WatchForUpdates(UserDataStore store)
+    private static async Task<bool> OfferMoveToApplicationsAsync(UserDataStore store, ILogger log)
+    {
+        var windows = AppHost.Get<WindowService>();
+        var loc = AppHost.Get<LocalizationService>();
+        if (!await windows.AskAsync(windows.Main is { IsVisible: true } main ? main : null, loc["move.question"],
+                loc["move.move"], loc["move.not_now"]))
+        {
+            store.Settings.MoveToApplicationsDeclined = true;
+            store.SaveSettings();
+            return false;
+        }
+        try
+        {
+            await MacAppMove.MoveAsync(log, update: false);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException
+                                       or System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            log.LogWarning(ex, "Could not move the app to Applications");
+            await windows.MessageAsync(windows.Main is { IsVisible: true } window ? window : null, loc["move.failed"]);
+            return false;
+        }
+        Quit();
+        return true;
+    }
+
+    /// <summary>
+    /// Looks for new releases in the background. A new version shows up at the bottom of the navigation, in the tray
+    /// menu and as a dot on the tray icon; the bottom-right notice (and on macOS a system notification, seen even with
+    /// the window closed) appears once per version.
+    /// </summary>
+    private static void WatchForUpdates(UserDataStore store, ILogger log)
     {
         var updates = AppHost.Get<UpdateService>();
+        var windows = AppHost.Get<WindowService>();
+        var notifies = OperatingSystem.IsMacOS() && MacAppUpdate.RunningBundle is not null && TryStartNotifications(updates, log);
         // Required: the card every time Filee starts (UpdateFound fires once per run). Recommended: once per version.
         // Optional: no card, the sidebar button only. Frequent releases no longer ask every day.
         updates.UpdateFound += (_, version) =>
@@ -201,11 +249,54 @@ public partial class App : Application
                 return;
             store.Settings.NotifiedUpdateVersion = version;
             store.SaveSettings();
-            AppHost.Get<WindowService>().ShowUpdateNotice(version);
+            windows.ShowUpdateNotice(version);
+            if (notifies && OperatingSystem.IsMacOS())
+            {
+                var loc = AppHost.Get<LocalizationService>();
+                Filee.Platform.MacOS.MacOSNotifications.Show("update", loc.Format("update.notice_title", version),
+                    loc["update.notification_body"]);
+            }
         };
-        updates.UpdateFailed += async (_, _) => await AppHost.Get<WindowService>().ShowUpdateFailedAsync();
+        updates.UpdateFailed += async (_, key) => await windows.ShowUpdateFailedAsync(key);
         updates.StartPeriodicChecks(() => store.Settings.CheckForUpdates, TimeSpan.FromSeconds(20));
+        // Opening the window is when the user may look for the update button: ask GitHub again if it's been a while.
+        windows.MainShown += async (_, _) => await updates.CheckSoonAsync();
+        // The copy MacAppMove just put in Applications: install the update the user asked for.
+        if (Program.Options.Update)
+            DispatcherTimer.RunOnce(async () =>
+            {
+                if (await updates.CheckAsync() is not { } version)
+                    return;
+                windows.ShowUpdateNotice(version); // where the download's progress shows
+                await updates.UpdateAsync();
+            }, TimeSpan.FromSeconds(2));
         DispatcherTimer.RunOnce(() => NotifyEngineUpdates(store), TimeSpan.FromSeconds(25));
+    }
+
+    /// <summary>
+    /// macOS: clicking the update notification opens Trasmuta with the update notice. False when notifications aren't
+    /// available (logged; the notice in the app still shows).
+    /// </summary>
+    private static bool TryStartNotifications(UpdateService updates, ILogger log)
+    {
+        if (!OperatingSystem.IsMacOS())
+            return false;
+        try
+        {
+            Filee.Platform.MacOS.MacOSNotifications.Initialize(() => Dispatcher.UIThread.Post(() =>
+            {
+                var windows = AppHost.Get<WindowService>();
+                windows.ShowMain();
+                if (updates.LatestVersion is { } latest)
+                    windows.ShowUpdateNotice(latest);
+            }));
+            return true;
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException or MarshalDirectiveException)
+        {
+            log.LogInformation("System notifications are not available: {Message}", ex.Message);
+            return false;
+        }
     }
 
     /// <summary>

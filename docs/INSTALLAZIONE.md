@@ -14,21 +14,28 @@
 
 Menu  → **Informazioni su questo Mac**. Alla voce **Chip** (o **Processore**):
 
-- c'è scritto **Apple M1, M2, M3, M4…** → ti serve il file che finisce con **`osx-arm64.zip`**
-- c'è scritto **Intel** → ti serve il file che finisce con **`osx-x64.zip`**
+- c'è scritto **Apple M1, M2, M3, M4…** → ti serve il file che finisce con **`osx-arm64.dmg`**
+- c'è scritto **Intel** → ti serve il file che finisce con **`osx-x64.dmg`**
+
+(Gli zip con lo stesso nome contengono la stessa app: servono all'aggiornamento automatico, ma puoi usarli anche per
+installare.)
 
 ### 2. Scarica
 
 Apri la pagina dell'ultima versione:
 **https://github.com/Pietro310/Trasmuta/releases/latest**
 
-In fondo, nella sezione **Assets**, clicca sul file giusto per il tuo Mac, ad esempio `Trasmuta-1.0.0-osx-arm64.zip`.
+In fondo, nella sezione **Assets**, clicca sul file giusto per il tuo Mac, ad esempio `Trasmuta-1.0.4-osx-arm64.dmg`.
 Lo trovi nella cartella **Download**.
 
 ### 3. Installa
 
-1. Fai doppio clic sullo zip: compare **Trasmuta**.
-2. Trascinala nella cartella **Applicazioni**.
+1. Fai doppio clic sul file `.dmg`: si apre una finestra con **Trasmuta** e la cartella **Applicazioni**.
+2. Trascina Trasmuta sulla cartella **Applicazioni**, poi chiudi la finestra ed espelli il disco "Trasmuta" (⏏ nella
+   barra laterale del Finder).
+
+Hai aperto Trasmuta direttamente da Download? All'avvio ti propone **Sposta in Applicazioni**: accetta e si sposta e
+si riapre da sola. Da Download non potrebbe aggiornarsi, perché macOS la esegue da una copia di sola lettura.
 
 ### 4. Primo avvio
 
@@ -64,8 +71,9 @@ Lo stile del menu (Cerchio, Ventaglio, Elenco, Griglia) si sceglie in **Tema →
 
 ## Aggiornare
 
-Trasmuta controlla da sola se è uscita una versione nuova (all'avvio e poi ogni 6 ore) e te lo dice con un avviso e un
-pulsante nella barra laterale. Puoi anche controllare a mano in **Informazioni → Aggiornamenti → Controlla ora** (About → Updates → Check now).
+Trasmuta controlla da sola se è uscita una versione nuova: all'avvio, poi ogni ora, quando apri la finestra e quando il
+Mac si risveglia. Te lo dice con un avviso in basso a destra, una notifica di macOS (la prima volta macOS chiede se
+permetterle), un pallino sull'icona nella barra dei menu e nel Dock, e un pulsante nella barra laterale. Puoi anche controllare a mano in **Informazioni → Aggiornamenti → Controlla ora** (About → Updates → Check now).
 
 Per aggiornare premi **Aggiorna** nell'avviso, nella barra laterale o in **Informazioni → Aggiornamenti**.
 Trasmuta scarica la nuova versione, ne verifica l'integrità, si chiude e si riapre aggiornata dopo pochi secondi.
@@ -73,13 +81,20 @@ Non serve sbloccarla di nuovo in Privacy e sicurezza, e impostazioni, preset e p
 
 ### Aggiornare a mano
 
-Serve solo se l'aggiornamento automatico non riesce, se Trasmuta è in una cartella in cui il tuo utente non può scrivere, o se hai la
-versione 1.0.1 o precedente (l'aggiornamento automatico è arrivato con la 1.0.2):
+Se Trasmuta non può aggiornarsi da sola, l'avviso spiega perché:
 
-1. Apri https://github.com/Pietro310/Trasmuta/releases/latest e scarica lo zip per il tuo Mac, come al punto 2
+- **è in Download o su un'immagine disco**: il pulsante diventa **Sposta e aggiorna**. Trasmuta si sposta in
+  Applicazioni, si riapre e si aggiorna;
+- **il tuo account non può modificare la cartella Applicazioni** (non sei amministratore): segui i passaggi qui sotto;
+  macOS chiederà la password di un amministratore.
+
+Aggiornare a mano serve anche se l'aggiornamento automatico non riesce, o se hai la versione 1.0.1 o precedente
+(l'aggiornamento automatico è arrivato con la 1.0.2):
+
+1. Apri https://github.com/Pietro310/Trasmuta/releases/latest e scarica il `.dmg` per il tuo Mac, come al punto 2
    dell'installazione.
 2. **Esci da Trasmuta**: icona nella barra dei menu → **Esci**.
-3. Fai doppio clic sullo zip e trascina la nuova **Trasmuta** in **Applicazioni**. Alla domanda scegli **Sostituisci**.
+3. Fai doppio clic sul `.dmg` e trascina la nuova **Trasmuta** su **Applicazioni**. Alla domanda scegli **Sostituisci**.
 4. Riaprila. macOS la blocca come al primo avvio: sbloccala allo stesso modo (punto 4 dell'installazione).
 
 Impostazioni, preset e permessi restano quelli di prima.
@@ -88,14 +103,14 @@ Non vuoi gli avvisi? Disattivali in **Informazioni → Aggiornamenti**, spegnend
 
 ### Verificare il download (facoltativo)
 
-Ogni versione pubblica anche il file `Trasmuta-<versione>-SHA256SUMS.txt`. Per controllare che lo zip sia integro,
-nel Terminale, dalla cartella Download:
+Ogni versione pubblica anche il file `Trasmuta-<versione>-SHA256SUMS.txt`. Per controllare che il `.dmg` o lo zip
+siano integri, nel Terminale, dalla cartella Download:
 
 ```bash
 shasum -a 256 -c --ignore-missing Trasmuta-*-SHA256SUMS.txt
 ```
 
-Deve rispondere `OK` accanto al nome dello zip.
+Deve rispondere `OK` accanto al nome del file.
 
 ---
 
@@ -121,8 +136,8 @@ tccutil reset Accessibility com.trasmuta.app
 poi riapri Trasmuta e concedi di nuovo il permesso.
 
 **"Trasmuta è danneggiata e non può essere aperta".**
-Succede se lo zip è stato aperto da un'app diversa da Archive Utility o il download si è interrotto. Scaricalo di
-nuovo e aprilo con un doppio clic nel Finder.
+Succede se il download si è interrotto o lo zip è stato aperto da un'app diversa da Archive Utility. Scarica di nuovo
+il `.dmg` e aprilo con un doppio clic nel Finder.
 
 **Alcuni formati sono grigi nel menu.**
 Servono un motore aggiuntivo (ad esempio FFmpeg per video e audio, LibreOffice per alcuni documenti). Passa con il

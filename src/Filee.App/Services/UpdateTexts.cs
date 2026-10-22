@@ -6,12 +6,22 @@ namespace Filee.App.Services;
 
 public static class UpdateTexts
 {
-    /// <summary>Button text: "Update" in an installed copy (it installs by itself), "Download" in a portable one.</summary>
-    public static string ButtonKey => UpdateService.UpdatesInPlace ? "update.install" : "update.download";
+    /// <summary>
+    /// Button text: "Update" in an installed copy (it installs by itself), "Move and update" in a Mac app that must
+    /// go to Applications first, "Download" in a portable one.
+    /// </summary>
+    public static string ButtonKey => UpdateService.UpdatesInPlace ? "update.install"
+        : UpdateService.MovesBeforeUpdate ? "update.move_install" : "update.download";
 
-    /// <summary>What the update button does, for the notice and tooltips.</summary>
+    /// <summary>What the update button does, for the notice and tooltips; on a Mac, why it can't update by itself.</summary>
     public static string HowKey => UpdateService.UpdatesInPlace ? "update.notice_text"
-        : OperatingSystem.IsMacOS() ? "update.notice_text_mac" : "update.notice_text_portable";
+        : !OperatingSystem.IsMacOS() ? "update.notice_text_portable"
+        : MacAppUpdate.State switch
+        {
+            MacSelfUpdate.NeedsMove => "update.notice_text_mac_move",
+            MacSelfUpdate.NoPermission => "update.notice_text_mac_permission",
+            _ => "update.notice_text_mac",
+        };
 
     /// <summary>Short label for the sidebar button and the tray menu ("Update to 1.4.0", "Downloading… 42%").</summary>
     public static string Short(UpdateService updates, ILocalizer loc) => updates.Step switch

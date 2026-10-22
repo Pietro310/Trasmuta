@@ -31,7 +31,19 @@ public enum UpdateStep
 public sealed partial class UpdateService : ObservableObject
 {
     /// <summary>How often a running Filee (it lives in the tray for days) looks for a new version.</summary>
-    private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(6);
+    internal static readonly TimeSpan CheckInterval = TimeSpan.FromHours(1);
+
+    /// <summary>How often the schedule is looked at; a much longer gap between two looks means the computer slept.</summary>
+    private static readonly TimeSpan Tick = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// The shortest time between two checks when the main window opens or the computer wakes (GitHub allows 60
+    /// questions an hour from one address).
+    /// </summary>
+    internal static readonly TimeSpan SoonestRecheck = TimeSpan.FromMinutes(10);
+
+    /// <summary>After a check that got no answer (offline, e.g. just after waking), the next try.</summary>
+    internal static readonly TimeSpan RetryAfterFailure = TimeSpan.FromMinutes(5);
 
     /// <summary>A download that receives nothing for this long is given up.</summary>
     private static readonly TimeSpan StallTimeout = TimeSpan.FromSeconds(30);
@@ -48,6 +60,9 @@ public sealed partial class UpdateService : ObservableObject
     private readonly ILogger<UpdateService> _log;
     private readonly HttpClient _http;
     private DispatcherTimer? _timer;
+    private Func<bool> _checksEnabled = () => false;
+    private DateTime _nextCheck = DateTime.MinValue, _lastCheck = DateTime.MinValue, _lastTick;
+    private bool _checking;
     private ReleaseFile? _installer;
     private ReleaseFile? _checksums;
 
@@ -99,8 +114,17 @@ public sealed partial class UpdateService : ObservableObject
     /// </summary>
     public static bool UpdatesInPlace => IsInstalled || MacAppUpdate.CanReplace;
 
+    /// <summary>
+    /// macOS: this copy runs from Downloads or a disk image and can't change itself; Update moves it to Applications
+    /// first (<see cref="MacAppMove"/>) and the moved copy updates.
+    /// </summary>
+    public static bool MovesBeforeUpdate => MacAppUpdate.State == MacSelfUpdate.NeedsMove;
+
     /// <summary>Whether <see cref="UpdateAsync"/> installs by itself (<see cref="UpdatesInPlace"/>; tests set it).</summary>
     internal bool InstallsItself { get; init; } = UpdatesInPlace;
+
+    /// <summary>Whether <see cref="UpdateAsync"/> moves the app to Applications first (<see cref="MovesBeforeUpdate"/>).</summary>
+    internal bool MovesFirst { get; init; } = MovesBeforeUpdate;
 
     /// <summary>
     /// The end of the release file an update downloads: this Mac's zip when running from an .app, else the Windows
@@ -241,19 +265,58 @@ public sealed partial class UpdateService : ObservableObject
         }
     }
 
-    /// <summary>Checks shortly after start and then every few hours while <paramref name="enabled"/> says so.</summary>
+    /// <summary>
+    /// Checks shortly after start, then every hour and after the computer wakes, while <paramref name="enabled"/> says
+    /// so. A check that gets no answer is tried again a few minutes later.
+    /// </summary>
     public void StartPeriodicChecks(Func<bool> enabled, TimeSpan firstDelay)
     {
         if (_timer is not null)
             return;
+        _checksEnabled = enabled;
         _timer = new DispatcherTimer { Interval = firstDelay };
         _timer.Tick += async (_, _) =>
         {
-            _timer.Interval = CheckInterval;
-            if (enabled())
-                await CheckAsync();
+            _timer.Interval = Tick;
+            var now = DateTime.UtcNow;
+            var woke = IsWake(now, _lastTick);
+            _lastTick = now;
+            if (now >= _nextCheck || woke && now - _lastCheck >= SoonestRecheck)
+                await ScheduledCheckAsync();
         };
         _timer.Start();
+    }
+
+    /// <summary>
+    /// Checks now unless the last check was only minutes ago: the main window opened, the user may look at the
+    /// update button.
+    /// </summary>
+    public async Task CheckSoonAsync()
+    {
+        if (_timer is not null && DateTime.UtcNow - _lastCheck >= SoonestRecheck)
+            await ScheduledCheckAsync();
+    }
+
+    /// <summary>True when the schedule was last looked at much longer ago than it should have: the computer slept.</summary>
+    internal static bool IsWake(DateTime now, DateTime lastTick) =>
+        lastTick != default && now - lastTick > 3 * Tick;
+
+    private async Task ScheduledCheckAsync()
+    {
+        if (_checking || !_checksEnabled())
+            return;
+        _checking = true;
+        try
+        {
+            var now = DateTime.UtcNow;
+            _lastCheck = now;
+            var answered = await RefreshAsync(announce: true);
+            _nextCheck = now + (answered ? CheckInterval : RetryAfterFailure);
+        }
+        finally
+        {
+            _checking = false;
+        }
     }
 
     /// <summary>
@@ -264,6 +327,11 @@ public sealed partial class UpdateService : ObservableObject
     {
         if (IsBusy)
             return;
+        if (!InstallsItself && MovesFirst)
+        {
+            await MoveThenUpdateAsync();
+            return;
+        }
         if (!InstallsItself)
         {
             OpenDownloadPage();
@@ -335,6 +403,27 @@ public sealed partial class UpdateService : ObservableObject
     }
 
     /// <summary>
+    /// macOS, an app in Downloads or on a disk image: moves it to Applications and quits; the moved copy starts with
+    /// <c>--update</c> and installs the new version.
+    /// </summary>
+    private async Task MoveThenUpdateAsync()
+    {
+        Step = UpdateStep.Installing;
+        try
+        {
+            await MacAppMove.MoveAsync(_log, update: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException
+                                       or Win32Exception or InvalidOperationException)
+        {
+            Fail("move", ex, "update.failed_move");
+            return;
+        }
+        _log.LogInformation("Moved to Applications: quitting so the moved copy can update");
+        App.Quit();
+    }
+
+    /// <summary>
     /// macOS: checks the app in the downloaded <paramref name="zip"/>, starts the script that swaps it in once Trasmuta
     /// has quit, and quits. The script opens the new version.
     /// </summary>
@@ -349,7 +438,7 @@ public sealed partial class UpdateService : ObservableObject
         catch (Exception ex) when (ex is IOException or InvalidDataException or Win32Exception or InvalidOperationException
                                        or UnauthorizedAccessException)
         {
-            Fail("install", ex);
+            Fail("install", ex, "update.failed_install");
             return;
         }
         _log.LogInformation("Replacing the app with {Version}: quitting so it can start", LatestVersion);
@@ -448,15 +537,16 @@ public sealed partial class UpdateService : ObservableObject
 
     /// <summary>
     /// Raised on the UI thread when an installed copy could not download or start the new installer. The app says so
-    /// and, once the user presses OK, opens <see cref="WebsiteUrl"/> (<see cref="OpenDownloadPage"/>).
+    /// (the argument is the text's key: what went wrong) and, once the user presses OK, opens
+    /// <see cref="WebsiteUrl"/> (<see cref="OpenDownloadPage"/>).
     /// </summary>
-    public event EventHandler? UpdateFailed;
+    public event EventHandler<string>? UpdateFailed;
 
-    private void Fail(string stage, Exception ex)
+    private void Fail(string stage, Exception ex, string messageKey = "update.failed_alert")
     {
         _log.LogWarning(ex, "In-app update failed ({Stage})", stage);
         Step = UpdateStep.Failed;
-        UpdateFailed?.Invoke(this, EventArgs.Empty);
+        UpdateFailed?.Invoke(this, messageKey);
     }
 
     private void Publish(string? newer, bool announce)

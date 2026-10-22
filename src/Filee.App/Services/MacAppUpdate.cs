@@ -10,6 +10,21 @@ using System.Runtime.InteropServices;
 
 namespace Filee.App.Services;
 
+/// <summary>Whether a Mac copy of Trasmuta can update itself.</summary>
+public enum MacSelfUpdate
+{
+    /// <summary>Not a published Trasmuta.app (Windows, Linux, run from source): updates are downloaded by hand.</summary>
+    NotAnApp,
+    Ready,
+    /// <summary>
+    /// Its folder is read-only and outside Applications: macOS runs it from a copy (opened from Downloads) or a disk
+    /// image. Moving it to Applications (<see cref="MacAppMove"/>) lets it update.
+    /// </summary>
+    NeedsMove,
+    /// <summary>In Applications, but this account may not change that folder (not an administrator).</summary>
+    NoPermission,
+}
+
 internal static class MacAppUpdate
 {
     /// <summary>The .app the running process belongs to (…/Trasmuta.app/Contents/MacOS/ → …/Trasmuta.app), or null.</summary>
@@ -22,6 +37,25 @@ internal static class MacAppUpdate
     public static bool CanReplace { get; } = RunningBundle is { } bundle && UpdateService.IsReleaseBuild &&
                                              IsWritable(Path.GetDirectoryName(bundle)!);
 
+    /// <summary>Whether this copy can update itself and, when it can't, why (the update notice says so).</summary>
+    public static MacSelfUpdate State { get; } = StateOf(UpdateService.IsReleaseBuild ? RunningBundle : null, CanReplace, Home);
+
+    private static string Home => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+    internal static MacSelfUpdate StateOf(string? publishedBundle, bool canReplace, string home) =>
+        publishedBundle is null ? MacSelfUpdate.NotAnApp
+        : canReplace ? MacSelfUpdate.Ready
+        : IsInApplications(publishedBundle, home) ? MacSelfUpdate.NoPermission
+        : MacSelfUpdate.NeedsMove;
+
+    /// <summary>
+    /// True for an app in /Applications or ~/Applications (or a folder in them). Not for one in Downloads, on a disk
+    /// image, or one macOS runs from a read-only copy because it was opened from Downloads (App Translocation).
+    /// </summary>
+    internal static bool IsInApplications(string bundle, string home) =>
+        bundle.StartsWith("/Applications/", StringComparison.Ordinal) ||
+        bundle.StartsWith(Path.Combine(home, "Applications") + "/", StringComparison.Ordinal);
+
     internal static string? BundleOf(string baseDirectory)
     {
         var macOS = Path.TrimEndingDirectorySeparator(baseDirectory);
@@ -33,7 +67,7 @@ internal static class MacAppUpdate
             : null;
     }
 
-    private static bool IsWritable(string folder)
+    internal static bool IsWritable(string folder)
     {
         try
         {
@@ -113,7 +147,7 @@ internal static class MacAppUpdate
     }
 
     /// <summary>Runs a tool and returns its trimmed output; throws <see cref="InvalidDataException"/> when it fails.</summary>
-    private static async Task<string> RunAsync(string tool, params string[] arguments)
+    internal static async Task<string> RunAsync(string tool, params string[] arguments)
     {
         var start = new ProcessStartInfo(tool) { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
         foreach (var argument in arguments)

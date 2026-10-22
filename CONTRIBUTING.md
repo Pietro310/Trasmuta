@@ -32,11 +32,14 @@ Con questa variabile la copia ha dati, motori e istanza propri e non registra vo
    ```
 
 Il workflow **Release** (`.github/workflows/release.yml`) compila l'app per Apple Silicon e Intel su un Mac di
-GitHub, scarica e verifica i motori inclusi, pubblica gli zip con le impronte SHA-256 nella pagina della versione e ne
-usa la sezione del CHANGELOG come testo. Entro qualche ora le app installate mostrano l'avviso. Se tag e `<Version>`
+GitHub, scarica e verifica i motori inclusi, pubblica i `.dmg` (prima installazione) e gli zip (aggiornamento
+automatico) con le impronte SHA-256 nella pagina della versione e ne usa la sezione del CHANGELOG come testo. Entro
+un'ora le app aperte mostrano l'avviso e una notifica. Se tag e `<Version>`
 non coincidono, o manca la sezione nel CHANGELOG, il workflow si ferma senza pubblicare nulla.
 
-Per provare solo la compilazione: Actions → Release → **Run workflow**; gli zip restano scaricabili come artefatti.
+Per provare solo la compilazione: Actions → Release → **Run workflow**; `.dmg` e zip restano scaricabili come
+artefatti. In locale `build/build-trasmuta-macos.sh --dmg` crea il `.dmg` (serve `pip install dmgbuild`); lo sfondo
+della sua finestra si rigenera con `python3 build/tools/make-dmg-background.py`.
 
 ## Struttura
 

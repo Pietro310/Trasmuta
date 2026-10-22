@@ -9,7 +9,8 @@ namespace Filee.App.Views;
 
 /// <summary>
 /// Bottom-right notice about a new version. "Update" downloads and runs the new installer and the card shows the
-/// download progress; a portable copy gets "Download", which opens the release page.
+/// download progress; a Mac app in Downloads gets "Move and update" (it moves to Applications, restarts and updates);
+/// a portable copy gets "Download", which opens the release page.
 /// </summary>
 public partial class UpdateNoticeWindow : Window
 {
@@ -39,7 +40,7 @@ public partial class UpdateNoticeWindow : Window
     {
         if (_updates is null)
             return;
-        if (!UpdateService.UpdatesInPlace)
+        if (!UpdateService.UpdatesInPlace && !UpdateService.MovesBeforeUpdate)
         {
             _updates.OpenDownloadPage();
             Close();

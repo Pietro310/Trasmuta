@@ -8,6 +8,8 @@
 //   Filee.exe --convert a b ...        open the donut for these files (Explorer context menu / Send To)
 //   Filee.exe --convert-list <file>    same, with one path per line in a UTF-8 file (Windows 11 Explorer menu, for
 //                                      selections too long for a command line); the app deletes the file afterwards
+//   Filee.exe --update                 look for a new version now and install it (macOS: the copy just moved to
+//                                      Applications by the update notice, MacAppMove)
 // Used by the installer (src/Filee.Setup, Installer.LaunchArguments):
 //   Filee.exe --install-engines=a,b    download these engine packages (EngineDownloads ids) in the engine window;
 //                                      an empty list means the user chose none, so the first-run choice is skipped
@@ -29,6 +31,7 @@ namespace Filee.App.Services;
 /// <param name="Language">Value of <c>--language</c>; null when absent.</param>
 /// <param name="WhatsNew"><c>--whats-new</c>: due slides show even when starting in the background.</param>
 /// <param name="UpdatedFrom">The value of <c>--whats-new</c>: the version the installer updated from; null when absent.</param>
+/// <param name="Update"><c>--update</c>: install the latest version as soon as it is found.</param>
 public sealed record CommandLine(
     bool Background,
     bool ShowSettings,
@@ -41,7 +44,8 @@ public sealed record CommandLine(
     bool? ContextMenu = null,
     string? Language = null,
     bool WhatsNew = false,
-    string? UpdatedFrom = null)
+    string? UpdatedFrom = null,
+    bool Update = false)
 {
     /// <summary>File name prefix of list files written by FileeExplorerMenu.dll (LIST_PREFIX there) into %TEMP%.</summary>
     public const string ListFilePrefix = "Filee-convert-";
@@ -62,6 +66,7 @@ public sealed record CommandLine(
         string? language = null;
         var whatsNew = false;
         string? updatedFrom = null;
+        var update = false;
 
         foreach (var arg in args)
         {
@@ -101,6 +106,9 @@ public sealed record CommandLine(
                     whatsNew = true;
                     updatedFrom = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
                     break;
+                case "--update":
+                    update = true;
+                    break;
                 case "--settings":
                     settings = true;
                     break;
@@ -117,7 +125,8 @@ public sealed record CommandLine(
                     break;
             }
         }
-        return new CommandLine(background, settings, files, listFile, quit, cleanup, engines, startWithWindows, contextMenu, language, whatsNew, updatedFrom);
+        return new CommandLine(background, settings, files, listFile, quit, cleanup, engines, startWithWindows, contextMenu, language, whatsNew, updatedFrom,
+            update);
     }
 
     /// <summary>"--Name=Value" → ("--name", "Value"); "--name" → ("--name", null).</summary>
