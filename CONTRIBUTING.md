@@ -26,10 +26,12 @@ Con questa variabile la copia ha dati, motori e istanza propri e non registra vo
 1. In `Directory.Build.props` imposta `<Version>` al nuovo numero, ad esempio `1.1.0`.
 2. In `CHANGELOG.md` aggiungi in cima la sezione `## 1.1.0`, con il blocco nascosto `<!-- update … -->` che decide
    quanto insistente è l'avviso (le istruzioni sono all'inizio del file).
-3. Fai commit e push, poi crea il tag:
+3. Fai commit e push su `main`, poi crea il tag:
    ```bash
    git tag v1.1.0 && git push origin v1.1.0
    ```
+   Senza una copia locale del repository: Actions → **Release** → **Run workflow** sul ramo `main`, con **publish**
+   spuntato. Il workflow crea da sé il tag `v<Version>` sul commit che ha compilato (si ferma se esiste già).
 
 Il workflow **Release** (`.github/workflows/release.yml`) compila l'app per Apple Silicon e Intel su un Mac di
 GitHub, scarica e verifica i motori inclusi, pubblica i `.dmg` (prima installazione) e gli zip (aggiornamento

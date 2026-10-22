@@ -8,10 +8,12 @@
 # including the hidden "<!-- update" block that sets how insistent the notice is. Nothing is published unless every
 # system built and passed its tests.
 #
-# Publishing a version: set <Version> in Directory.Build.props, add its section to CHANGELOG.md, push, then
-#   git tag v1.2.3 && git push origin v1.2.3
-# Running the workflow by hand (Actions → Release → Run workflow) only builds the files, as downloadable artifacts;
-# so does a push to a wip/ branch for the macOS files.
+# Publishing a version: set <Version> in Directory.Build.props, add its section to CHANGELOG.md, push to main, then
+# either push the tag (git tag v1.2.3 && git push origin v1.2.3) or, without a local clone, run the workflow by hand
+# on main with "publish" ticked (Actions → Release → Run workflow): it makes the tag v<Version> itself, on the commit
+# it built, and stops if that tag already exists.
+# Running it by hand without "publish" only builds the macOS files, as downloadable artifacts; so does a push to a
+# wip/ branch.
 
 name: Release
 
@@ -21,16 +23,54 @@ on:
     branches: ['wip/**']
     paths-ignore: ['**/*.md', 'docs/**']
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish v<Version> from Directory.Build.props (main only; makes the tag)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
 
 jobs:
+  # What this run publishes: the pushed tag, or v<Version> when run by hand on main with "publish"; nothing otherwise.
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.plan.outputs.tag }}
+      publish: ${{ steps.plan.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: plan
+        env:
+          PUBLISH: ${{ inputs.publish }}
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            echo "tag=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          elif [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$PUBLISH" = true ]; then
+            if [ "$GITHUB_REF" != refs/heads/main ]; then
+              echo "::error::Publish only from main (this run is on $GITHUB_REF_NAME)"
+              exit 1
+            fi
+            tag="v$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)"
+            if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+              echo "::error::$tag exists already: raise <Version> in Directory.Build.props first"
+              exit 1
+            fi
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          fi
+
   windows-linux:
-    if: startsWith(github.ref, 'refs/tags/')
+    needs: plan
+    if: needs.plan.outputs.publish == 'true'
     uses: ./.github/workflows/windows-linux.yml
     with:
-      version: ${{ github.ref_name }}
+      version: ${{ needs.plan.outputs.tag }}
 
   build:
     strategy:
@@ -94,9 +134,11 @@ jobs:
           if-no-files-found: error
 
   release:
-    needs: [build, windows-linux]
-    if: startsWith(github.ref, 'refs/tags/')
+    needs: [plan, build, windows-linux]
+    if: needs.plan.outputs.publish == 'true'
     runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.plan.outputs.tag }}
     steps:
       - uses: actions/checkout@v7
 
@@ -108,7 +150,7 @@ jobs:
 
       - name: Checksums and release notes
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="${TAG#v}"
           # The release files only (the Linux jobs' own checksum files stay behind), all of them in one checksum file.
           mkdir dist
           cp packages/Trasmuta-*.dmg packages/Trasmuta-*.zip packages/Trasmuta-*-win-Setup.exe packages/Trasmuta-*.tar.gz dist/
@@ -127,5 +169,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          gh release create "$GITHUB_REF_NAME" dist/* --title "Trasmuta $version" --notes-file notes.md --verify-tag
+          version="${TAG#v}"
+          # A pushed tag must exist; a run by hand makes it here, on the commit that was built and tested.
+          if [ "$GITHUB_REF_TYPE" = tag ]; then where=--verify-tag; else where="--target=$GITHUB_SHA"; fi
+          gh release create "$TAG" dist/* --title "Trasmuta $version" --notes-file notes.md "$where"
