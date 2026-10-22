@@ -16,7 +16,7 @@
 - **Niente finestre da aprire.** Il menu dei formati compare dove si trova già il mouse, e mostra solo i formati
   sensati per i file che stai trascinando.
 - **Quattro stili di menu.** Cerchio, Ventaglio, Elenco o Griglia: scegli quello che ti è più comodo in
-  Impostazioni → Tema → Stile menu. L'anteprima mostra subito come apparirà.
+  **Theme → Menu style** (Tema → Stile menu). L'anteprima mostra subito come apparirà.
 - **Tastiera ovunque.** In ogni stile i tasti <kbd>1</kbd>–<kbd>9</kbd> scelgono un formato, le frecce si spostano,
   <kbd>Invio</kbd> converte, <kbd>Esc</kbd> chiude. <kbd>Tab</kbd> (o la rotella) passa ai formati meno usati.
 - **Tutto resta sul tuo computer.** Nessun file viene caricato online: la conversione avviene in locale e il
@@ -35,7 +35,7 @@ Altri modi per aprire il menu: la scorciatoia da tastiera sui file selezionati, 
 nel menu contestuale del Finder e la zona di rilascio nella schermata Home.
 
 Ogni tipo di file ha il suo menu, con preset per qualità, dimensioni, DPI, pagine PDF, compressione, video e audio,
-cartella di destinazione e nome dei file. I preset si riordinano trascinandoli in Impostazioni → Barra strumenti.
+cartella di destinazione e nome dei file. I preset si riordinano trascinandoli nella pagina **Donut toolbar** (barra del menu).
 
 ## Formati principali
 
@@ -53,6 +53,9 @@ dalle fonti ufficiali solo quando servono. I dettagli sono in [docs/ENGINES.md](
 
 ## Scarica
 
+La guida completa, con aggiornamento, disinstallazione e soluzione dei problemi, è in
+[docs/INSTALLAZIONE.md](docs/INSTALLAZIONE.md).
+
 1. Apri la pagina [Releases](https://github.com/Pietro310/Trasmuta/releases/latest) e scarica lo zip per il tuo Mac:
    `osx-arm64` per Apple Silicon (M1, M2, M3, …), `osx-x64` per i Mac Intel.
 2. Apri lo zip e trascina **Trasmuta.app** nella cartella Applicazioni.
@@ -62,7 +65,7 @@ dalle fonti ufficiali solo quando servono. I dettagli sono in [docs/ENGINES.md](
    selezione) quando li chiede.
 
 Quando esce una nuova versione Trasmuta te lo segnala: scarica il nuovo zip e sostituisci l'app in Applicazioni. Le
-impostazioni e i permessi restano. Il controllo si può disattivare in Informazioni → Aggiornamenti.
+impostazioni e i permessi restano. Il controllo si può disattivare in **About → Updates** (Informazioni → Aggiornamenti).
 
 ## Compilare da sé
 

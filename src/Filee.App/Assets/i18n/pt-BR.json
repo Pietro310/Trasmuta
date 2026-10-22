@@ -298,6 +298,7 @@
   "update.later": "Depois",
   "update.install": "Atualizar",
   "update.notice_text_portable": "Esta é a versão portátil.\nBaixe o novo zip e descompacte por cima desta pasta. Suas configurações são mantidas.",
+  "update.notice_text_mac": "Download the new zip, quit Trasmuta and drag the new app into Applications, replacing this one. Your settings and permissions are kept.",
   "update.downloading": "Baixando a atualização… {0}%",
   "update.installing_short": "Instalando…",
   "update.installing": "O instalador está em execução. O Filee inicia de novo quando terminar.",

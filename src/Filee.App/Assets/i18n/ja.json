@@ -286,6 +286,7 @@
   "update.later": "後で",
   "update.install": "更新",
   "update.notice_text_portable": "これはポータブル版です。\n新しいZIPをダウンロードし、このフォルダーに上書き展開してください。設定はそのまま引き継がれます。",
+  "update.notice_text_mac": "Download the new zip, quit Trasmuta and drag the new app into Applications, replacing this one. Your settings and permissions are kept.",
   "update.downloading": "更新をダウンロード中…{0}%",
   "update.installing_short": "インストール中…",
   "update.installing": "インストーラーを実行中です。完了するとFileeが再起動します。",

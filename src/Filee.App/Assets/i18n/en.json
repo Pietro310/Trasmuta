@@ -298,6 +298,7 @@
   "update.later": "Later",
   "update.install": "Update",
   "update.notice_text_portable": "This is the portable version.\nDownload the new zip and unpack it over this folder. Your settings are kept.",
+  "update.notice_text_mac": "Download the new zip, quit Trasmuta and drag the new app into Applications, replacing this one. Your settings and permissions are kept.",
   "update.downloading": "Downloading the update… {0}%",
   "update.installing_short": "Installing…",
   "update.installing": "The installer is running. Filee starts again when it is done.",

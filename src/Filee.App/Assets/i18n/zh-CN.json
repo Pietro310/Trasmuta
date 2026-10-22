@@ -298,6 +298,7 @@
   "update.later": "稍后",
   "update.install": "更新",
   "update.notice_text_portable": "这是便携版，请下载新的 zip 并解压覆盖当前文件夹，设置会保留。",
+  "update.notice_text_mac": "Download the new zip, quit Trasmuta and drag the new app into Applications, replacing this one. Your settings and permissions are kept.",
   "update.downloading": "正在下载更新… {0}%",
   "update.installing_short": "正在安装…",
   "update.installing": "安装程序正在运行，完成后 Filee 会重新启动。",

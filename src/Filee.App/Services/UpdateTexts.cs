@@ -10,7 +10,8 @@ public static class UpdateTexts
     public static string ButtonKey => UpdateService.IsInstalled ? "update.install" : "update.download";
 
     /// <summary>What the update button does, for the notice and tooltips.</summary>
-    public static string HowKey => UpdateService.IsInstalled ? "update.notice_text" : "update.notice_text_portable";
+    public static string HowKey => UpdateService.IsInstalled ? "update.notice_text"
+        : OperatingSystem.IsMacOS() ? "update.notice_text_mac" : "update.notice_text_portable";
 
     /// <summary>Short label for the sidebar button and the tray menu ("Update to 1.4.0", "Downloading… 42%").</summary>
     public static string Short(UpdateService updates, ILocalizer loc) => updates.Step switch

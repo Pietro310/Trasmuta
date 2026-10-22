@@ -286,6 +286,7 @@
   "update.later": "لاحقًا",
   "update.install": "تحديث",
   "update.notice_text_portable": "هذه هي النسخة المحمولة.\nنزّل ملف ZIP الجديد وفك ضغطه فوق هذا المجلد. ستُحفَظ إعداداتك.",
+  "update.notice_text_mac": "Download the new zip, quit Trasmuta and drag the new app into Applications, replacing this one. Your settings and permissions are kept.",
   "update.downloading": "جارٍ تنزيل التحديث… {0}%",
   "update.installing_short": "جارٍ التثبيت…",
   "update.installing": "أداة التثبيت قيد التشغيل. سيبدأ Filee مجددًا عند اكتمالها.",

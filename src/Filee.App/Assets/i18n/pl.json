@@ -298,6 +298,7 @@
   "update.later": "Później",
   "update.install": "Aktualizuj",
   "update.notice_text_portable": "To wersja przenośna.\nPobierz nowy plik zip i rozpakuj go do tego folderu. Ustawienia zostaną zachowane.",
+  "update.notice_text_mac": "Download the new zip, quit Trasmuta and drag the new app into Applications, replacing this one. Your settings and permissions are kept.",
   "update.downloading": "Pobieranie aktualizacji… {0}%",
   "update.installing_short": "Instalowanie…",
   "update.installing": "Instalator działa. Filee uruchomi się ponownie po zakończeniu.",
