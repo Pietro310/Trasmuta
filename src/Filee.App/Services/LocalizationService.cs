@@ -151,17 +151,8 @@ public sealed partial class LocalizationService : ILocalizer
         return strings;
     }
 
-    /// <summary>
-    /// The translations name the app "Filee": shows <see cref="Filee.Core.AppIdentity.Name"/> instead, leaving URLs
-    /// (github.com/KnifeLemon/Filee) and file names (Filee.app) alone.
-    /// </summary>
-    internal static string WithAppName(string text) =>
-        text.Contains("Filee", StringComparison.Ordinal)
-            ? AppNamePattern().Replace(text, Filee.Core.AppIdentity.Name)
-            : text;
-
-    [System.Text.RegularExpressions.GeneratedRegex(@"(?<![/\w])Filee(?!\.\w)\b")]
-    private static partial System.Text.RegularExpressions.Regex AppNamePattern();
+    /// <summary>The translations name the app "Filee": shows Trasmuta instead (<see cref="Filee.Core.AppIdentity.WithName"/>).</summary>
+    internal static string WithAppName(string text) => Filee.Core.AppIdentity.WithName(text);
 
     /// <summary>
     /// One string in the system's language, before Avalonia (and the settings) are loaded: for the messages a launch

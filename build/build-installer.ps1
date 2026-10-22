@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Builds the Windows installer Filee-<version>-win-Setup.exe (Filee's own, src/Filee.Setup) and, with -Portable, the
+  Builds the Windows installer Trasmuta-<version>-win-Setup.exe (src/Filee.Setup) and, with -Portable, the
   portable zip, into -OutputDir.
 
 .DESCRIPTION
@@ -55,8 +55,8 @@ if ($CheckOnly) {
     Remove-Item $check -Recurse -Force -ErrorAction SilentlyContinue
     $PublishDir = Join-Path $check 'app'
     New-Item -ItemType Directory -Force -Path (Join-Path $PublishDir 'cli'), (Join-Path $PublishDir 'engines\rhwp') | Out-Null
-    Set-Content (Join-Path $PublishDir 'Filee.exe') 'stub' -NoNewline
-    Set-Content (Join-Path $PublishDir 'cli\filee.cmd') "@`"%~dp0..\filee-cli.exe`" %*" -Encoding ascii
+    Set-Content (Join-Path $PublishDir 'Trasmuta.exe') 'stub' -NoNewline
+    Set-Content (Join-Path $PublishDir 'cli\trasmuta.cmd') "@`"%~dp0..\filee-cli.exe`" %*" -Encoding ascii
     Set-Content (Join-Path $PublishDir 'engines\rhwp\rhwp.exe') 'stub' -NoNewline
     $OutputDir = $check
 }
@@ -66,6 +66,8 @@ elseif (-not $PublishDir) {
     Invoke-Checked 'dotnet publish' {
         dotnet publish (Join-Path $root 'src\Filee.App\Filee.App.csproj') -c Release -r win-x64 --self-contained `
             "-p:Version=$Version" -p:PublishReadyToRun=true -p:FileeRelease=true -o $PublishDir
+    # The program is called like the app (Task Manager, the taskbar, Setup's shortcuts): Trasmuta.exe.
+    Move-Item -Force (Join-Path $PublishDir 'Filee.exe') (Join-Path $PublishDir 'Trasmuta.exe')
     }
     # The command line, in the same folder so it shares the runtime and the engines (filee-cli.exe). Its name can't
     # be filee.exe next to Filee.exe, so the "filee" command is cli\filee.cmd, which Setup can put on PATH.
@@ -77,7 +79,7 @@ elseif (-not $PublishDir) {
     # Filee.App's publish removes them, but publishing the command line into the same folder brings them back.
     Get-ChildItem $PublishDir -Filter 'lib*.pdb' | Remove-Item
     New-Item -ItemType Directory -Force -Path (Join-Path $PublishDir 'cli') | Out-Null
-    Set-Content (Join-Path $PublishDir 'cli\filee.cmd') "@`"%~dp0..\filee-cli.exe`" %*" -Encoding ascii
+    Set-Content (Join-Path $PublishDir 'cli\trasmuta.cmd') "@`"%~dp0..\filee-cli.exe`" %*" -Encoding ascii
     # Next to Filee.exe: the Explorer menu package's external location is the install folder.
     & (Join-Path $PSScriptRoot 'build-explorer-menu.ps1') -Destination $PublishDir -Version $Version
     # Only the small rhwp and 7-Zip are bundled; the app downloads the others when the user picks them. The Microsoft
@@ -86,7 +88,7 @@ elseif (-not $PublishDir) {
     & (Join-Path $PSScriptRoot 'fetch-engines.ps1') -Only rhwp, 7zip -Destination (Join-Path $PublishDir 'engines') -RuntimeTo $PublishDir
 }
 $PublishDir = (Resolve-Path $PublishDir).Path
-if (-not (Test-Path (Join-Path $PublishDir 'Filee.exe'))) { throw "Filee.exe is missing in $PublishDir" }
+if (-not (Test-Path (Join-Path $PublishDir 'Trasmuta.exe'))) { throw "Trasmuta.exe is missing in $PublishDir" }
 if (-not $CheckOnly) {
     # Without them rhwp and unhwp fail on PCs without the Visual C++ Redistributable (#248). They go into the payload
     # and the portable zip; Setup checks again after unpacking (RuntimeCheck) on the user's PC.
@@ -107,7 +109,7 @@ Invoke-Checked 'dotnet publish (setup)' {
         "-p:Version=$Version" -o $setupProgram
 }
 
-$setupExe = Join-Path $OutputDir "Filee-$Version-win-Setup.exe"
+$setupExe = Join-Path $OutputDir "Trasmuta-$Version-win-Setup.exe"
 Write-Host "pack installer $Version"
 $fast = @(if ($CheckOnly) { '--fast' })
 Push-Location $root
@@ -130,14 +132,14 @@ if ($CheckOnly) {
             throw "$(Split-Path $exe -Leaf) $arguments failed with exit code $($process.ExitCode)"
         }
     }
-    $installed = Join-Path $sandbox 'Program Files\Filee'
+    $installed = Join-Path $sandbox 'Program Files\Trasmuta'
     Invoke-Setup $setupExe @('/MERGETASKS=desktopicon')
-    foreach ($file in 'Filee.exe', 'cli\filee.cmd', 'engines\rhwp\rhwp.exe', 'uninstall.exe', 'uninstall.json') {
+    foreach ($file in 'Trasmuta.exe', 'cli\trasmuta.cmd', 'engines\rhwp\rhwp.exe', 'uninstall.exe', 'uninstall.json') {
         if (-not (Test-Path (Join-Path $installed $file))) { throw "Setup did not install $file" }
     }
     $registry = Get-Content (Join-Path $sandbox 'registry.json') -Raw
     if ($registry -notmatch 'C8686E06-8327-40A2-B0F7-3DEDD61D9248\}_is1' -or $registry -notmatch 'uninstall\.exe') { throw 'Setup did not write the uninstall entry' }
-    if (-not (Test-Path (Join-Path $sandbox 'Public\Desktop\Filee.lnk'))) { throw 'Setup did not create the desktop shortcut' }
+    if (-not (Test-Path (Join-Path $sandbox 'Public\Desktop\Trasmuta.lnk'))) { throw 'Setup did not create the desktop shortcut' }
     Invoke-Setup $setupExe @()
     Invoke-Setup (Join-Path $installed 'uninstall.exe') @()
     if (Test-Path $installed) { throw "The uninstaller left $installed" }
@@ -148,7 +150,7 @@ if ($CheckOnly) {
 
 $files = @($setupExe)
 if ($Portable) {
-    $zip = Join-Path $OutputDir "Filee-$Version-win-Portable.zip"
+    $zip = Join-Path $OutputDir "Trasmuta-$Version-win-Portable.zip"
     Remove-Item $zip -ErrorAction SilentlyContinue
     Write-Host "zip  $zip"
     Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -157,7 +159,7 @@ if ($Portable) {
 }
 
 # Checksums for people who verify their download.
-$sums = Join-Path $OutputDir "Filee-$Version-SHA256SUMS.txt"
+$sums = Join-Path $OutputDir "Trasmuta-$Version-win-SHA256SUMS.txt"
 $files | ForEach-Object { "$((Get-FileHash $_ -Algorithm SHA256).Hash.ToLowerInvariant())  $(Split-Path $_ -Leaf)" } |
     Set-Content $sums -Encoding ascii
 Get-Item ($files + $sums) | Format-Table Name, Length

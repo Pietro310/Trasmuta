@@ -35,7 +35,7 @@ public sealed class Installer(SetupContext context, SetupPayload payload)
     {
         var folder = Path.TrimEndingDirectorySeparator(Path.GetFullPath(choices.Folder));
         var update = previous is not null && string.Equals(previous.Folder, folder, StringComparison.OrdinalIgnoreCase);
-        Log.Info($"{(update ? "Update" : choices.Portable ? "Portable copy" : "Install")} of Filee {payload.Manifest.Version} " +
+        Log.Info($"{(update ? "Update" : choices.Portable ? "Portable copy" : "Install")} of Trasmuta {payload.Manifest.Version} " +
                  $"into {folder} for {(choices.Scope == InstallScope.Machine ? "all users" : "this user")}; " +
                  $"previous: {(previous is null ? "none" : $"{previous.Version} in {previous.Folder}{(previous.ByInno ? " (Inno Setup)" : "")}")}; " +
                  $"options: {choices.Tasks.ToInnoString()}; engines: {string.Join(',', choices.Engines)}; language: {choices.Language}");
@@ -220,7 +220,7 @@ public sealed class Installer(SetupContext context, SetupPayload payload)
         if (File.Exists(exe))
         {
             var code = System.RunAndWait(exe, "--quit", QuitTimeout);
-            Log.Info($"Filee --quit: exit code {code}");
+            Log.Info($"Trasmuta --quit: exit code {code}");
         }
         var running = System.ProgramsIn(folder).ToList();
         if (velopack)
@@ -265,13 +265,13 @@ public sealed class Installer(SetupContext context, SetupPayload payload)
         {
             if (!File.Exists(startMenu))
                 undo.Push(("Start menu shortcut", () => File.Delete(startMenu)));
-            System.CreateShortcut(startMenu, exe, folder, "Filee");
+            System.CreateShortcut(startMenu, exe, folder, "Trasmuta");
         }
         if (choices.Tasks.DesktopIcon && !choices.NoIcons)
         {
             if (!File.Exists(desktop))
                 undo.Push(("desktop shortcut", () => File.Delete(desktop)));
-            System.CreateShortcut(desktop, exe, folder, "Filee");
+            System.CreateShortcut(desktop, exe, folder, "Trasmuta");
         }
         else if (update && File.Exists(desktop))
         {

@@ -8,7 +8,7 @@ public static class SetupInfo
     /// <summary>GitHub repository from Directory.Build.props (FileeRepositoryUrl).</summary>
     public static string RepositoryUrl =>
         typeof(SetupInfo).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
-            .FirstOrDefault(a => a.Key == "RepositoryUrl")?.Value ?? "https://github.com/KnifeLemon/Filee";
+            .FirstOrDefault(a => a.Key == "RepositoryUrl")?.Value ?? "https://github.com/Pietro310/Trasmuta";
 
     /// <summary>The website: one big download button.</summary>
     public const string WebsiteUrl = "https://filee.sh/";

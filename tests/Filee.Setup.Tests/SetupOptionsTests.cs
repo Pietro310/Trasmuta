@@ -38,7 +38,7 @@ public class SetupOptionsTests
     public void Every_inno_setup_switch_is_understood()
     {
         var options = SetupOptions.Parse([
-            "/silent", "/SuppressMsgBoxes", "/DIR=C:\\Tools\\Filee", "/LANG=zhcn", "/TASKS=cli,desktopicon",
+            "/silent", "/SuppressMsgBoxes", "/DIR=C:\\Tools\\Trasmuta", "/LANG=zhcn", "/TASKS=cli,desktopicon",
             "/MERGETASKS=!startup", "/NOICONS", "/CURRENTUSER", "/LOG=C:\\logs\\setup.log", "/NOCLOSEAPPLICATIONS",
             "/NORESTART", "/SP-", "/NOCANCEL", "/RESTARTEXITCODE=3", "/CLOSEAPPLICATIONS", "/RESTARTAPPLICATIONS",
             "/NORESTARTAPPLICATIONS", "/NOFORCECLOSEAPPLICATIONS", "/LOGCLOSEAPPLICATIONS", "/COMPONENTS=a", "/TYPE=full",
@@ -46,7 +46,7 @@ public class SetupOptionsTests
         ]);
         Assert.Equal(SetupUi.Silent, options.Ui);
         Assert.True(options.SuppressMessageBoxes);
-        Assert.Equal(@"C:\Tools\Filee", options.Directory);
+        Assert.Equal(@"C:\Tools\Trasmuta", options.Directory);
         Assert.Equal("zhcn", options.Language);
         Assert.Equal("cli,desktopicon", options.Tasks);
         Assert.Equal("!startup", options.MergeTasks);
@@ -85,9 +85,9 @@ public class SetupOptionsTests
     }
 
     [Theory]
-    [InlineData("/DIR=\"C:\\Program Files\\Filee\"", @"C:\Program Files\Filee")]
-    [InlineData("/DIR=C:\\Program Files\\Filee", @"C:\Program Files\Filee")]
-    [InlineData("/dir=  D:\\Apps\\Filee  ", @"D:\Apps\Filee")]
+    [InlineData("/DIR=\"C:\\Program Files\\Trasmuta\"", @"C:\Program Files\Trasmuta")]
+    [InlineData("/DIR=C:\\Program Files\\Trasmuta", @"C:\Program Files\Trasmuta")]
+    [InlineData("/dir=  D:\\Apps\\Trasmuta  ", @"D:\Apps\Trasmuta")]
     public void Folders_with_or_without_quotes(string arg, string folder) =>
         Assert.Equal(folder, SetupOptions.Parse([arg]).Directory);
 
@@ -102,7 +102,7 @@ public class SetupOptionsTests
 
     [Theory]
     [InlineData("plain")]
-    [InlineData("/DIR=C:\\Program Files\\Filee")]
+    [InlineData("/DIR=C:\\Program Files\\Trasmuta")]
     [InlineData("C:\\folder with space\\")]
     [InlineData("say \"hi\"")]
     [InlineData("back\\\\slashes\\\"quote")]

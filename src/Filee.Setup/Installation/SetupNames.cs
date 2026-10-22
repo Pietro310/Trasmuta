@@ -1,4 +1,6 @@
-// Names Setup shares with Filee 1.x's Inno Setup installer, the app and Windows. Changing one breaks updates.
+// Names Setup shares with the app and Windows. Changing one breaks updates.
+// Trasmuta: its own AppGuid, uninstall keys, names and registry values, so Setup never finds, updates or removes an
+// installed Filee (whose Setup used the upstream values, including its 1.x Inno Setup and Velopack installs).
 
 namespace Filee.Setup.Installation;
 
@@ -8,19 +10,19 @@ public static class SetupNames
     /// Inno Setup's AppId of Filee (installer/Filee.iss, 1.x). Apps &amp; Features lists Filee under the uninstall key
     /// "{id}_is1"; Setup keeps that key, so an update from 1.x leaves one entry.
     /// </summary>
-    public const string AppGuid = "C8686E06-8327-40A2-B0F7-3DEDD61D9248";
+    public const string AppGuid = "5B7A2E3C-9D41-4F6B-8E2A-7C1D3F9A6B52";
 
     public const string UninstallKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\{" + AppGuid + "}_is1";
 
     /// <summary>Filee 1.1 and earlier: Velopack installed it per user and registered it here (HKCU).</summary>
-    public const string VelopackUninstallKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Filee";
+    public const string VelopackUninstallKey = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\" + Filee.Core.AppIdentity.Name;
 
     public const string MachineEnvironmentKey = @"SYSTEM\CurrentControlSet\Control\Session Manager\Environment";
     public const string UserEnvironmentKey = "Environment";
 
-    public const string AppName = "Filee";
-    public const string Publisher = "Filee contributors";
-    public const string AppExe = "Filee.exe";
+    public const string AppName = Filee.Core.AppIdentity.Name;
+    public const string Publisher = Filee.Core.AppIdentity.Publisher;
+    public const string AppExe = Filee.Core.AppIdentity.Name + ".exe";
 
     /// <summary>The uninstaller next to Filee.exe (UpdateService.IsInstalled looks for it).</summary>
     public const string UninstallerExe = "uninstall.exe";
@@ -35,12 +37,12 @@ public static class SetupNames
     public static readonly IReadOnlyList<string> InnoUninstallerFiles = ["unins000.exe", "unins000.dat", "unins000.msg"];
 
     /// <summary>Start menu and desktop shortcut name.</summary>
-    public const string ShortcutName = "Filee.lnk";
+    public const string ShortcutName = Filee.Core.AppIdentity.Name + ".lnk";
 
     /// <summary>Registry values Setup adds to the uninstall key (Inno Setup kept the same in "Inno Setup: …").</summary>
-    public const string TasksValue = "Filee Setup: Tasks";
-    public const string LanguageValue = "Filee Setup: Language";
-    public const string ScopeValue = "Filee Setup: Scope";
+    public const string TasksValue = Filee.Core.AppIdentity.Name + " Setup: Tasks";
+    public const string LanguageValue = Filee.Core.AppIdentity.Name + " Setup: Language";
+    public const string ScopeValue = Filee.Core.AppIdentity.Name + " Setup: Scope";
     public const string InnoTasksValue = "Inno Setup: Selected Tasks";
     public const string InnoAppPathValue = "Inno Setup: App Path";
     public const string InnoVersionValue = "Inno Setup: Setup Version";

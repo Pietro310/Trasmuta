@@ -62,7 +62,7 @@ public static class Elevation
                 failure = $"{ex.GetType().Name}: {ex.Message}";
             }
         })
-        { IsBackground = true, Name = "Filee shell relaunch" };
+        { IsBackground = true, Name = Filee.Core.AppIdentity.Name + " shell relaunch" };
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
         if (!thread.Join(TimeSpan.FromSeconds(15)))
@@ -118,7 +118,7 @@ public static class Elevation
     public static void ShowWarning(string text)
     {
         if (OperatingSystem.IsWindows())
-            NativeMethods.MessageBox(0, text, "Filee",
+            NativeMethods.MessageBox(0, text, Filee.Core.AppIdentity.Name,
                 NativeMethods.MB_OK | NativeMethods.MB_ICONWARNING | NativeMethods.MB_SETFOREGROUND | NativeMethods.MB_TOPMOST);
     }
 

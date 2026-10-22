@@ -137,10 +137,10 @@ public sealed class SetupBench : IDisposable
 
     public string InstallFolder => Paths.DefaultInstallFolder(InstallScope.Machine);
 
-    /// <summary>The published app: Filee.exe, the "filee" command, an engine and a few more files.</summary>
+    /// <summary>The published app: Trasmuta.exe, the "filee" command, an engine and a few more files.</summary>
     private void WriteApp(Action<TempFolder, string>? app)
     {
-        _temp.Write(@"app\Filee.exe", "Filee 2");
+        _temp.Write(@"app\Trasmuta.exe", "Filee 2");
         _temp.Write(@"app\Filee.dll", new string('a', 20_000));
         _temp.Write(@"app\cli\filee.cmd", "@\"%~dp0..\\filee-cli.exe\" %*");
         _temp.Write(@"app\filee-cli.exe", "cli");
