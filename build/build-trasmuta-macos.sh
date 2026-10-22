@@ -61,8 +61,11 @@ xattr -cr "$app"
 entitlements="$root/installer/macos/entitlements.plist"
 find "$macos" -type f ! -path "$macos/Trasmuta" | awk '{ print length, $0 }' | sort -rn | cut -d' ' -f2- |
     while IFS= read -r file; do codesign --force --sign - --entitlements "$entitlements" "$file" 2>/dev/null; done
-codesign --force --sign - --entitlements "$entitlements" "$macos/Trasmuta"
-codesign --force --sign - --entitlements "$entitlements" "$app"
+# An ad-hoc signature is identified by its exact hash, which changes with every build: macOS would forget the
+# Accessibility permission at each update. Requiring only the bundle identifier keeps it across builds.
+requirement='designated => identifier "com.trasmuta.app"'
+codesign --force --sign - --entitlements "$entitlements" -r="$requirement" "$macos/Trasmuta"
+codesign --force --sign - --entitlements "$entitlements" -r="$requirement" "$app"
 codesign --verify --deep --strict "$app"
 echo "Built $app ($version, $runtime)"
 
