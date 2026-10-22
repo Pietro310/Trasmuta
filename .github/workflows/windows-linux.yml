@@ -1,0 +1,363 @@
+# Builds and tests Trasmuta for Windows and Linux. The Release workflow calls it for a version tag and publishes what it
+# uploads (artifacts named package-*); a push to a wip/ branch or a run by hand (Actions → Windows and Linux → Run
+# workflow) only builds and tests, leaving the packages as artifacts.
+#
+# Windows: the tests (Setup's too, which need Windows), the installer checked in a sandbox, then
+#   Trasmuta-<version>-win-Setup.exe (src/Filee.Setup, what the in-app update runs) and Trasmuta-<version>-win-Portable.zip.
+# Linux: Trasmuta-<version>-linux-x64.tar.gz and -linux-arm64.tar.gz, built on Ubuntu 24.04 but made to run on Ubuntu
+#   22.04 (glibc 2.35). rhwp's Linux release needs a newer glibc, so it is built from pinned source on Ubuntu 22.04 first
+#   (linux-native, build/build-linux-native.py) and replaces the download in the package. Every ELF file in a package is
+#   checked against glibc 2.35, and the packages are unpacked, run and started on Ubuntu 22.04.
+
+name: Windows and Linux
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        default: ''
+        required: false
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version (empty uses Directory.Build.props)'
+        type: string
+        required: false
+  push:
+    branches: ['wip/**']
+    paths-ignore: ['**/*.md', 'docs/**']
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Version
+        id: version
+        run: |
+          $version = '${{ inputs.version }}'.TrimStart('v')
+          if (-not $version) {
+            $version = ([xml](Get-Content Directory.Build.props)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          }
+          "value=$version" >> $env:GITHUB_OUTPUT
+
+      # The release embeds the Noto fonts, so the tests run with them too: the headless UI tests load them.
+      - name: Fonts
+        run: ./build/fetch-fonts.ps1
+
+      # The Zig toolchain (~100 MB) that compiles the Explorer menu DLL: saved right after it is downloaded, even if a
+      # later step fails, so it is downloaded once.
+      - name: Restore Zig toolchain
+        id: zig
+        uses: actions/cache/restore@v5
+        with:
+          path: build/.cache/zig-x86_64-windows-0.16.0
+          key: zig-0.16.0-x86_64-windows
+
+      # Windows 11 top-level Explorer menu: FileeExplorerMenu.dll (C) and the unsigned sparse package
+      # FileeExplorerMenu.msix. Built before the tests so they check the real files.
+      - name: Build Explorer menu extension
+        run: ./build/build-explorer-menu.ps1 -Version ${{ steps.version.outputs.value }}
+
+      - name: Save Zig toolchain
+        if: steps.zig.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: build/.cache/zig-x86_64-windows-0.16.0
+          key: zig-0.16.0-x86_64-windows
+
+      # rhwp, Pandoc and 7-Zip are small; with them the HWP/HWPX and archive engine tests run too.
+      - name: Fetch rhwp, Pandoc and 7-Zip for engine tests
+        run: ./build/fetch-engines.ps1 -Only rhwp,pandoc,7zip
+
+      - name: Build
+        run: dotnet build Filee.slnx -c Release
+
+      # The UI tests on their own first: a crash names the test that was running and leaves a dump in TestResults.
+      - name: Test UI on its own
+        run: dotnet test tests/Filee.App.Tests --no-build -c Release --blame-crash --blame-hang-timeout 5m --logger "console;verbosity=normal" --results-directory TestResults/app
+
+      # The rest, Setup's tests included (they only run on Windows).
+      - name: Test
+        run: dotnet test Filee.slnx --no-build -c Release --filter "FullyQualifiedName!~Filee.App.Tests" --logger trx --results-directory TestResults
+
+      # Setup around a stub app, run in a sandbox: install, update and uninstall into a scratch folder with a registry
+      # file of its own, without administrator rights.
+      - name: Check the installer
+        run: ./build/build-installer.ps1 -CheckOnly
+
+      # The app (Release, self-contained, ReadyToRun) with the Explorer menu extension, the bundled rhwp and 7-Zip and
+      # the Microsoft C++ runtime; Setup (one self-contained file) with the app appended as a checked payload; the
+      # portable zip.
+      - name: Build installer and portable zip
+        run: ./build/build-installer.ps1 -Version ${{ steps.version.outputs.value }} -Portable
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-win-x64
+          path: |
+            Releases/Trasmuta-*-win-Setup.exe
+            Releases/Trasmuta-*-win-Portable.zip
+          if-no-files-found: error
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-windows
+          path: |
+            TestResults/
+            tests/Filee.App.Tests/bin/Release/net10.0/screenshots/
+            tests/Filee.Setup.Tests/bin/Release/net10.0/screenshots/
+          if-no-files-found: ignore
+
+  linux-native:
+    name: Linux native ${{ matrix.rid }} (Ubuntu 22.04)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            rid: linux-x64
+          - runner: ubuntu-22.04-arm
+            rid: linux-arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    env:
+      NATIVE_OUT: ${{ github.workspace }}/build/.cache/linux-native/${{ matrix.rid }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # Fails when engines.json moved to another rhwp version while build/build-linux-native.py still builds the old
+      # source (also when the build below comes from the cache).
+      - name: Check pinned sources
+        run: python3 build/build-linux-native.py check
+
+      - name: Restore native builds
+        id: native-cache
+        uses: actions/cache@v5
+        with:
+          path: build/.cache/linux-native/${{ matrix.rid }}
+          key: linux-native-${{ matrix.rid }}-ubuntu-22.04-${{ hashFiles('build/build-linux-native.py') }}
+
+      # rhwp's default features are pure Rust: a C toolchain for the linker and build scripts is enough.
+      - name: Build dependencies
+        if: steps.native-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config git
+          if ! command -v rustup >/dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain none
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+
+      - name: Restore cargo downloads
+        if: steps.native-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-registry-${{ matrix.rid }}-${{ hashFiles('build/build-linux-native.py') }}
+          restore-keys: cargo-registry-${{ matrix.rid }}-
+
+      - name: Build rhwp
+        if: steps.native-cache.outputs.cache-hit != 'true'
+        run: python3 build/build-linux-native.py rhwp --output "$NATIVE_OUT/rhwp" --work "$RUNNER_TEMP/rhwp"
+
+      - name: Check glibc requirements
+        run: python3 build/check-elf-glibc.py --max 2.35 --needed "$NATIVE_OUT"
+
+      - name: Upload native builds
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-native-${{ matrix.rid }}
+          path: build/.cache/linux-native/${{ matrix.rid }}/
+          if-no-files-found: error
+
+  linux:
+    name: Linux ${{ matrix.rid }}
+    needs: linux-native
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            rid: linux-x64
+          - runner: ubuntu-24.04-arm
+            rid: linux-arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download Linux native builds
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-native-${{ matrix.rid }}
+          path: ${{ runner.temp }}/linux-native
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Linux desktop dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu74 libssl3t64 libstdc++6 tzdata zlib1g \
+            libfontconfig1 libfreetype6 libx11-6 libice6 libsm6 libxrandr2 libxkbcommon0 libxi6 libxtst6 libxt6 xvfb fonts-noto-cjk
+
+      - name: Fonts
+        run: ./build/fetch-fonts.ps1
+
+      - name: Restore engine downloads
+        uses: actions/cache@v5
+        with:
+          path: build/.cache/portable-downloads
+          key: portable-engines-${{ matrix.rid }}-${{ hashFiles('src/Filee.Engines/Infrastructure/engines.json') }}
+
+      - name: Build and test
+        run: |
+          ./build/fetch-portable-engines.ps1 -Runtime '${{ matrix.rid }}' -Destination engines
+          dotnet build Filee.slnx -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $projects = @('Filee.Core.Tests', 'Filee.Platform.Tests', 'Filee.Engines.Tests', 'Filee.Cli.Tests', 'Filee.App.Tests')
+          foreach ($project in $projects) {
+            $testArguments = @('test', "tests/$project/$project.csproj", '--no-build', '-c', 'Release', '--logger', 'trx', '--results-directory', "TestResults/${{ matrix.rid }}",
+              '--filter', 'FullyQualifiedName!=Filee.App.Tests.ExplorerMenuTests.Every_native_import_exists_in_the_dll_it_names&FullyQualifiedName!=Filee.App.Tests.ExplorerMenuTests.Reading_the_registered_package_never_throws')
+            xvfb-run -a env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 dotnet @testArguments
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      # rhwp from linux-native instead of the download (see the top).
+      - name: Build package
+        env:
+          PACKAGE_VERSION: ${{ inputs.version }}
+        run: |
+          ./build/build-portable.ps1 -Runtime '${{ matrix.rid }}' -Version $env:PACKAGE_VERSION -SkipFonts `
+            -RhwpOverride (Join-Path $env:RUNNER_TEMP 'linux-native/rhwp')
+
+      - name: Check archive and run native converters
+        run: ./build/smoke-portable.ps1 -Runtime '${{ matrix.rid }}'
+
+      - name: Check glibc requirements
+        shell: bash
+        run: python3 build/check-elf-glibc.py --max 2.35 "$FILEE_SMOKE_PACKAGE"
+
+      - name: Launch the desktop app
+        shell: bash
+        run: python3 build/smoke-launch-app.py
+
+      - name: Collect logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/trasmuta-screens"
+          if [ -d "$HOME/.config/Trasmuta/logs" ]; then cp -R "$HOME/.config/Trasmuta/logs" "$RUNNER_TEMP/trasmuta-screens/"; fi
+
+      # The per-package checksum file is for the Ubuntu 22.04 check below; the release has one for every file.
+      - name: Upload package
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-${{ matrix.rid }}
+          path: |
+            Releases/Trasmuta-*-${{ matrix.rid }}.tar.gz
+            Releases/Trasmuta-*-${{ matrix.rid }}-SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Upload test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-test-results-${{ matrix.rid }}
+          path: |
+            TestResults/${{ matrix.rid }}/
+            tests/Filee.App.Tests/bin/Release/net10.0/screenshots/
+            ${{ runner.temp }}/trasmuta-startup.log
+            ${{ runner.temp }}/trasmuta-screens/
+          if-no-files-found: ignore
+
+  # The packages built above, unpacked and started on the oldest supported Ubuntu, with only the runtime libraries a
+  # user installs from installer/linux/INSTALL.txt.
+  ubuntu-22-04:
+    name: Package on Ubuntu 22.04 (${{ matrix.rid }})
+    needs: linux
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            rid: linux-x64
+          - runner: ubuntu-22.04-arm
+            rid: linux-arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Linux desktop dependencies (Ubuntu 22.04)
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 libssl3 libstdc++6 tzdata zlib1g \
+            libfontconfig1 libfreetype6 libx11-6 libice6 libsm6 libxrandr2 libxkbcommon0 libxi6 libxtst6 libxt6 xvfb fonts-noto-cjk
+
+      - name: Download package
+        uses: actions/download-artifact@v8
+        with:
+          name: package-${{ matrix.rid }}
+          path: Releases
+
+      - name: Check archive and run native converters
+        run: ./build/smoke-portable.ps1 -Runtime '${{ matrix.rid }}'
+
+      - name: Check glibc requirements
+        shell: bash
+        run: python3 build/check-elf-glibc.py --max 2.35 "$FILEE_SMOKE_PACKAGE"
+
+      - name: Launch the desktop app
+        shell: bash
+        run: python3 build/smoke-launch-app.py
+
+      - name: Collect logs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/trasmuta-screens"
+          if [ -d "$HOME/.config/Trasmuta/logs" ]; then cp -R "$HOME/.config/Trasmuta/logs" "$RUNNER_TEMP/trasmuta-screens/"; fi
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ubuntu-22-04-results-${{ matrix.rid }}
+          path: |
+            ${{ runner.temp }}/trasmuta-startup.log
+            ${{ runner.temp }}/trasmuta-screens/
+          if-no-files-found: ignore

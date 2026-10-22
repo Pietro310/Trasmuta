@@ -34,6 +34,9 @@ public class ExplorerMenuTests
         }
     }
 
+    /// <summary>The app's program on Windows (build-installer.ps1 renames Filee.exe to it).</summary>
+    private const string AppExe = Filee.Core.AppIdentity.Name + ".exe";
+
     private static string BuiltFolder => Path.Combine(RepoRoot, "build", ".cache", "explorer-menu");
 
     [Fact]
@@ -51,7 +54,7 @@ public class ExplorerMenuTests
         Assert.Equal("10.0.22000.0", (string?)manifest.Descendants(F + "TargetDeviceFamily").Single().Attribute("MinVersion"));
 
         var app = manifest.Descendants(F + "Application").Single();
-        Assert.Equal("Filee.exe", (string?)app.Attribute("Executable"));
+        Assert.Equal(AppExe, (string?)app.Attribute("Executable"));
         Assert.Equal("mediumIL", (string?)app.Attribute(Uap10 + "TrustLevel"));
         Assert.Equal("win32App", (string?)app.Attribute(Uap10 + "RuntimeBehavior"));
         Assert.Equal("none", (string?)app.Element(Uap + "VisualElements")!.Attribute("AppListEntry"));
@@ -80,7 +83,9 @@ public class ExplorerMenuTests
         Assert.Equal(ExplorerMenuPackage.ClassId, fromSource);
 
         Assert.Contains($"#define LIST_PREFIX L\"{CommandLine.ListFilePrefix}\"", source);
-        Assert.Contains($"#define TITLE_FILE L\"Filee\\\\{ExplorerMenuPackage.TitleFileName}\"", source);
+        Assert.Contains($"#define TITLE_FILE L\"{Filee.Core.AppIdentity.Name}\\\\{ExplorerMenuPackage.TitleFileName}\"", source);
+        Assert.Contains($"#define APP_EXE L\"{AppExe}\"", source);
+        Assert.Contains($"#define DEFAULT_TITLE L\"Convert with {Filee.Core.AppIdentity.Name}\"", source);
     }
 
     [Fact]
@@ -138,7 +143,7 @@ public class ExplorerMenuTests
         Assert.DoesNotContain("\"", script);
 
         var remove = ExplorerMenuRegistration.BuildRemoveScript(@"C:\Temp\err.txt");
-        Assert.Contains("Get-AppxPackage -Name 'Filee.ExplorerMenu' | Remove-AppxPackage", remove);
+        Assert.Contains("Get-AppxPackage -Name 'Trasmuta.ExplorerMenu' | Remove-AppxPackage", remove);
     }
 
     [Fact]
@@ -226,8 +231,8 @@ public class ExplorerMenuTests
         using var command = NativeCommand.Create(dll);
         // The title comes from the file the app writes into its data folder; without it the English default is used.
         var expectedTitle = ExplorerMenuRegistration.ReadTitle();
-        Assert.Equal(expectedTitle ?? "Convert with Filee", command.GetTitle());
-        Assert.Equal(Path.Combine(BuiltFolder, "Filee.exe") + ",0", command.GetIcon(), ignoreCase: true);
+        Assert.Equal(expectedTitle ?? "Convert with Trasmuta", command.GetTitle());
+        Assert.Equal(Path.Combine(BuiltFolder, AppExe) + ",0", command.GetIcon(), ignoreCase: true);
         Assert.Equal(ExplorerMenuPackage.ClassId, command.GetCanonicalName());
 
         const int enabled = 0, hidden = 2;

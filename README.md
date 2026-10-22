@@ -26,7 +26,8 @@
 
 ## Come si usa
 
-1. Tieni premuto <kbd>Option</kbd> (su Windows e Linux <kbd>Ctrl</kbd>) e trascina dei file dal Finder.
+1. Tieni premuto <kbd>Option</kbd> (su Windows e Linux <kbd>Ctrl</kbd>) e trascina dei file dal Finder (o da Esplora
+   file, o dal file manager).
 2. Sotto il cursore si apre il menu con i formati adatti.
 3. Lascia i file sul formato desiderato: un anello mostra l'avanzamento e il file convertito compare accanto
    all'originale.
@@ -56,6 +57,17 @@ dalle fonti ufficiali solo quando servono. I dettagli sono in [docs/ENGINES.md](
 La guida completa, con aggiornamento, disinstallazione e soluzione dei problemi, è in
 [docs/INSTALLAZIONE.md](docs/INSTALLAZIONE.md).
 
+Trasmuta funziona su macOS 13 o successivo, Windows 10/11 e Linux (Ubuntu 22.04 o successivo). Tutti i file sono
+nella pagina [Releases](https://github.com/Pietro310/Trasmuta/releases/latest):
+
+| Sistema | File |
+|---|---|
+| macOS | `Trasmuta-<versione>-osx-arm64.dmg` (Apple Silicon) o `-osx-x64.dmg` (Intel) |
+| Windows | `Trasmuta-<versione>-win-Setup.exe` (o `-win-Portable.zip`, senza installazione) |
+| Linux | `Trasmuta-<versione>-linux-x64.tar.gz` o `-linux-arm64.tar.gz` |
+
+Su Mac:
+
 1. Apri la pagina [Releases](https://github.com/Pietro310/Trasmuta/releases/latest) e scarica il `.dmg` per il tuo
    Mac: `osx-arm64` per Apple Silicon (M1, M2, M3, …), `osx-x64` per i Mac Intel.
 2. Aprilo e, nella finestra che compare, trascina **Trasmuta** sulla cartella Applicazioni.
@@ -64,9 +76,10 @@ La guida completa, con aggiornamento, disinstallazione e soluzione dei problemi,
 4. Concedi a Trasmuta i permessi **Accessibilità** (per i gesti) e **Automazione del Finder** (per leggere la
    selezione) quando li chiede.
 
-Quando esce una nuova versione Trasmuta te lo segnala (anche con una notifica di macOS): premi **Aggiorna** e si
-aggiorna da sola. Impostazioni e
-permessi restano. Il controllo si può disattivare in **Informazioni → Aggiornamenti** (Informazioni → Aggiornamenti).
+Su Windows e Linux i passaggi sono nella [guida](docs/INSTALLAZIONE.md#windows).
+
+Quando esce una nuova versione Trasmuta te lo segnala (su Mac anche con una notifica): premi **Aggiorna** e si aggiorna
+da sola (su Linux apre la pagina di download). Impostazioni e permessi restano. Il controllo si può disattivare in **Informazioni → Aggiornamenti** (Informazioni → Aggiornamenti).
 
 ## Compilare da sé
 

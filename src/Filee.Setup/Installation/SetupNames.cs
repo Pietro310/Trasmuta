@@ -7,8 +7,8 @@ namespace Filee.Setup.Installation;
 public static class SetupNames
 {
     /// <summary>
-    /// Inno Setup's AppId of Filee (installer/Filee.iss, 1.x). Apps &amp; Features lists Filee under the uninstall key
-    /// "{id}_is1"; Setup keeps that key, so an update from 1.x leaves one entry.
+    /// Trasmuta's own id (Filee's Setup uses another, inherited from its Inno Setup installer). Apps &amp; Features lists
+    /// the app under the uninstall key "{id}_is1", Inno Setup's form, which Setup keeps.
     /// </summary>
     public const string AppGuid = "5B7A2E3C-9D41-4F6B-8E2A-7C1D3F9A6B52";
 

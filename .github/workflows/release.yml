@@ -1,33 +1,46 @@
-# Builds Trasmuta.app for Apple Silicon and Intel Macs and, for a version tag (v1.2.3), publishes a GitHub Release
-# with a .dmg (first installs: drag the app onto Applications) and a zip (what the in-app update downloads) for each,
-# and their SHA-256 checksums. The app's update check (UpdateService) reads that release: its text is
-# the version's section of CHANGELOG.md, including the hidden "<!-- update" block that sets how insistent the
-# notice is.
+# Builds Trasmuta for every system and, for a version tag (v1.2.3), publishes a GitHub Release with:
+#   macOS (Apple Silicon and Intel): a .dmg (first installs: drag the app onto Applications) and a zip (what the
+#     in-app update downloads), built here;
+#   Windows: Trasmuta-<version>-win-Setup.exe and the portable zip; Linux: tar.gz for x64 and arm64 (built and tested
+#     by windows-linux.yml);
+#   Trasmuta-<version>-SHA256SUMS.txt with the checksums of all of them.
+# The app's update check (UpdateService) reads that release: its text is the version's section of CHANGELOG.md,
+# including the hidden "<!-- update" block that sets how insistent the notice is. Nothing is published unless every
+# system built and passed its tests.
 #
 # Publishing a version: set <Version> in Directory.Build.props, add its section to CHANGELOG.md, push, then
 #   git tag v1.2.3 && git push origin v1.2.3
-# Running the workflow by hand (Actions → Release → Run workflow) only builds the files, as downloadable artifacts.
+# Running the workflow by hand (Actions → Release → Run workflow) only builds the files, as downloadable artifacts;
+# so does a push to a wip/ branch for the macOS files.
 
 name: Release
 
 on:
   push:
     tags: ['v*.*.*']
+    branches: ['wip/**']
+    paths-ignore: ['**/*.md', 'docs/**']
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  windows-linux:
+    if: startsWith(github.ref, 'refs/tags/')
+    uses: ./.github/workflows/windows-linux.yml
+    with:
+      version: ${{ github.ref_name }}
+
   build:
     strategy:
       matrix:
         runtime: [osx-arm64, osx-x64]
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
@@ -72,30 +85,34 @@ jobs:
           test -f "$RUNNER_TEMP/dmg/.DS_Store"
           hdiutil detach "$RUNNER_TEMP/dmg"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: Trasmuta-${{ matrix.runtime }}
+          name: package-${{ matrix.runtime }}
           path: |
             ${{ runner.temp }}/out/Trasmuta-*.zip
             ${{ runner.temp }}/out/Trasmuta-*.dmg
           if-no-files-found: error
 
   release:
-    needs: build
+    needs: [build, windows-linux]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
-          path: dist
+          pattern: package-*
+          path: packages
           merge-multiple: true
 
       - name: Checksums and release notes
         run: |
           version="${GITHUB_REF_NAME#v}"
-          (cd dist && sha256sum Trasmuta-*.dmg Trasmuta-*.zip > "Trasmuta-$version-SHA256SUMS.txt")
+          # The release files only (the Linux jobs' own checksum files stay behind), all of them in one checksum file.
+          mkdir dist
+          cp packages/Trasmuta-*.dmg packages/Trasmuta-*.zip packages/Trasmuta-*-win-Setup.exe packages/Trasmuta-*.tar.gz dist/
+          (cd dist && sha256sum Trasmuta-* > "Trasmuta-$version-SHA256SUMS.txt")
           # The version's section of CHANGELOG.md: from its "## <version>" heading to the next "## ".
           awk -v v="$version" '
             /^## / { if (found) exit; if (index($0, "## " v) == 1) { found = 1; next } }

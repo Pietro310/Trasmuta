@@ -66,9 +66,9 @@ elseif (-not $PublishDir) {
     Invoke-Checked 'dotnet publish' {
         dotnet publish (Join-Path $root 'src\Filee.App\Filee.App.csproj') -c Release -r win-x64 --self-contained `
             "-p:Version=$Version" -p:PublishReadyToRun=true -p:FileeRelease=true -o $PublishDir
+    }
     # The program is called like the app (Task Manager, the taskbar, Setup's shortcuts): Trasmuta.exe.
     Move-Item -Force (Join-Path $PublishDir 'Filee.exe') (Join-Path $PublishDir 'Trasmuta.exe')
-    }
     # The command line, in the same folder so it shares the runtime and the engines (filee-cli.exe). Its name can't
     # be filee.exe next to Filee.exe, so the "filee" command is cli\filee.cmd, which Setup can put on PATH.
     Invoke-Checked 'dotnet publish (cli)' {
@@ -138,7 +138,8 @@ if ($CheckOnly) {
         if (-not (Test-Path (Join-Path $installed $file))) { throw "Setup did not install $file" }
     }
     $registry = Get-Content (Join-Path $sandbox 'registry.json') -Raw
-    if ($registry -notmatch 'C8686E06-8327-40A2-B0F7-3DEDD61D9248\}_is1' -or $registry -notmatch 'uninstall\.exe') { throw 'Setup did not write the uninstall entry' }
+    # Trasmuta's own AppGuid (SetupNames.AppGuid), not Filee's.
+    if ($registry -notmatch '5B7A2E3C-9D41-4F6B-8E2A-7C1D3F9A6B52\}_is1' -or $registry -notmatch 'uninstall\.exe') { throw 'Setup did not write the uninstall entry' }
     if (-not (Test-Path (Join-Path $sandbox 'Public\Desktop\Trasmuta.lnk'))) { throw 'Setup did not create the desktop shortcut' }
     Invoke-Setup $setupExe @()
     Invoke-Setup (Join-Path $installed 'uninstall.exe') @()

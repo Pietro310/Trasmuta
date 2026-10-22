@@ -30,6 +30,10 @@ it: Le nuove versioni vengono notate prima (ogni ora e al risveglio del Mac), co
   aggiorna); se il tuo account non può modificare Applicazioni, spiega come aggiornarla a mano.
 - **Nuovo file .dmg** per la prima installazione: si apre una finestra in cui basta trascinare Trasmuta su
   Applicazioni. Gli zip restano per l'aggiornamento automatico.
+- **Windows e Linux**: prime versioni pronte da scaricare. Su Windows un programma di installazione
+  (`Trasmuta-1.0.4-win-Setup.exe`, si aggiorna da solo) o la versione portatile; su Linux un archivio per x64 e ARM64
+  (Ubuntu 22.04 o successivo). Trasmuta si installa accanto a un eventuale Filee senza toccarlo. Istruzioni in
+  [docs/INSTALLAZIONE.md](docs/INSTALLAZIONE.md).
 
 ## 1.0.3
 
