@@ -16,7 +16,7 @@
 - **Niente finestre da aprire.** Il menu dei formati compare dove si trova già il mouse, e mostra solo i formati
   sensati per i file che stai trascinando.
 - **Quattro stili di menu.** Cerchio, Ventaglio, Elenco o Griglia: scegli quello che ti è più comodo in
-  **Theme → Menu style** (Tema → Stile menu). L'anteprima mostra subito come apparirà.
+  **Tema → Stile menu** (Theme → Menu style). L'anteprima mostra subito come apparirà.
 - **Tastiera ovunque.** In ogni stile i tasti <kbd>1</kbd>–<kbd>9</kbd> scelgono un formato, le frecce si spostano,
   <kbd>Invio</kbd> converte, <kbd>Esc</kbd> chiude. <kbd>Tab</kbd> (o la rotella) passa ai formati meno usati.
 - **Tutto resta sul tuo computer.** Nessun file viene caricato online: la conversione avviene in locale e il
@@ -35,7 +35,7 @@ Altri modi per aprire il menu: la scorciatoia da tastiera sui file selezionati, 
 nel menu contestuale del Finder e la zona di rilascio nella schermata Home.
 
 Ogni tipo di file ha il suo menu, con preset per qualità, dimensioni, DPI, pagine PDF, compressione, video e audio,
-cartella di destinazione e nome dei file. I preset si riordinano trascinandoli nella pagina **Donut toolbar** (barra del menu).
+cartella di destinazione e nome dei file. I preset si riordinano trascinandoli nella pagina **Menu di conversione**.
 
 ## Formati principali
 
@@ -64,8 +64,8 @@ La guida completa, con aggiornamento, disinstallazione e soluzione dei problemi,
 4. Concedi a Trasmuta i permessi **Accessibilità** (per i gesti) e **Automazione del Finder** (per leggere la
    selezione) quando li chiede.
 
-Quando esce una nuova versione Trasmuta te lo segnala: scarica il nuovo zip e sostituisci l'app in Applicazioni. Le
-impostazioni e i permessi restano. Il controllo si può disattivare in **About → Updates** (Informazioni → Aggiornamenti).
+Quando esce una nuova versione Trasmuta te lo segnala: premi **Aggiorna** e si aggiorna da sola. Impostazioni e
+permessi restano. Il controllo si può disattivare in **Informazioni → Aggiornamenti** (Informazioni → Aggiornamenti).
 
 ## Compilare da sé
 

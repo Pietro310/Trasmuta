@@ -9,6 +9,18 @@ l'app la mostra nell'avviso di aggiornamento. Il blocco nascosto "update" (invis
   en: …               una riga di riassunto per l'avviso (in inglese, come l'interfaccia); se ne possono mettere più
 -->
 
+## 1.0.2
+
+<!-- update
+level: recommended
+en: Updates install themselves: press Update and Trasmuta restarts on the new version.
+en: Trasmuta now speaks Italian.
+-->
+
+- **Aggiornamento con un clic**: premi **Aggiorna** e Trasmuta scarica la nuova versione, ne verifica l'integrità, si
+  sostituisce e si riapre da sola. Niente più zip da trascinare né sblocco in Privacy e sicurezza.
+- **Interfaccia in italiano**, scelta automaticamente sui Mac in italiano (si cambia in Generali → Lingua).
+
 ## 1.0.1
 
 <!-- update
@@ -31,12 +43,12 @@ en: Keys 1–9 pick a format in every style.
 
 Prima versione di Trasmuta.
 
-- **Stili del menu**: oltre al Cerchio, i nuovi stili Ventaglio, Elenco e Griglia (Theme → Menu
-  style), con anteprima dal vivo. In Elenco e Griglia l'intestazione resta sotto il cursore e i gruppi di preset si
+- **Stili del menu**: oltre al Cerchio, i nuovi stili Ventaglio, Elenco e Griglia (Tema → Stile
+  menu), con anteprima dal vivo. In Elenco e Griglia l'intestazione resta sotto il cursore e i gruppi di preset si
   aprono in una colonna laterale.
 - **Tasti 1–9** per scegliere un formato in qualsiasi stile; nella Griglia le frecce su e giù cambiano riga, nell'Elenco
   la freccia destra apre un gruppo e quella sinistra lo chiude.
 - Nuova identità: nome, icona e cartelle dati proprie (`~/Library/Application Support/Trasmuta`).
 - Script `build/build-trasmuta-macos.sh` per compilare, firmare e installare l'app su macOS.
 - Versioni pubblicate automaticamente su GitHub (Apple Silicon e Intel) e avvisi di aggiornamento nell'app
-  (About → Updates).
+  (Informazioni → Aggiornamenti).

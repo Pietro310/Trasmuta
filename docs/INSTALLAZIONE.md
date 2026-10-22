@@ -50,7 +50,7 @@ Trasmuta li chiede la prima volta che servono. Senza, il menu sotto il cursore n
 | **Accessibilità** | Impostazioni di Sistema → Privacy e sicurezza → Accessibilità → attiva **Trasmuta** | Riconoscere il gesto (tasto + trascinamento) e le scorciatoie |
 | **Automazione → Finder** | Compare come richiesta: rispondi **OK** | Leggere i file selezionati nel Finder quando usi la scorciatoia da tastiera |
 
-Dopo aver attivato l'Accessibilità, se il menu non compare esci da Trasmuta (icona nella barra dei menu → Quit) e
+Dopo aver attivato l'Accessibilità, se il menu non compare esci da Trasmuta (icona nella barra dei menu → Esci) e
 riaprila.
 
 ### 6. Prova
@@ -58,27 +58,33 @@ riaprila.
 Tieni premuto **Option ⌥**, trascina un file dal Finder e lascialo su un formato del menu che compare sotto il
 cursore. Il file convertito viene salvato accanto all'originale.
 
-Lo stile del menu (Cerchio, Ventaglio, Elenco, Griglia) si sceglie in **Theme → Menu style** (Tema → Stile menu).
+Lo stile del menu (Cerchio, Ventaglio, Elenco, Griglia) si sceglie in **Tema → Stile menu** (Theme → Menu style).
 
 ---
 
 ## Aggiornare
 
 Trasmuta controlla da sola se è uscita una versione nuova (all'avvio e poi ogni 6 ore) e te lo dice con un avviso e un
-pulsante nella barra laterale. Puoi anche controllare a mano in **About → Updates → Check now** (Informazioni → Aggiornamenti → Controlla ora).
+pulsante nella barra laterale. Puoi anche controllare a mano in **Informazioni → Aggiornamenti → Controlla ora** (About → Updates → Check now).
 
-Per aggiornare:
+Per aggiornare premi **Aggiorna** nell'avviso, nella barra laterale o in **Informazioni → Aggiornamenti**.
+Trasmuta scarica la nuova versione, ne verifica l'integrità, si chiude e si riapre aggiornata dopo pochi secondi.
+Non serve sbloccarla di nuovo in Privacy e sicurezza, e impostazioni, preset e permessi restano quelli di prima.
 
-1. Premi **Download** nell'avviso (oppure apri https://github.com/Pietro310/Trasmuta/releases/latest) e scarica lo zip
-   per il tuo Mac, come al punto 2.
-2. **Esci da Trasmuta**: icona nella barra dei menu → **Quit**.
+### Aggiornare a mano
+
+Serve solo se l'aggiornamento automatico non riesce, se Trasmuta è in una cartella in cui il tuo utente non può scrivere, o se hai la
+versione 1.0.1 o precedente (l'aggiornamento automatico è arrivato con la 1.0.2):
+
+1. Apri https://github.com/Pietro310/Trasmuta/releases/latest e scarica lo zip per il tuo Mac, come al punto 2
+   dell'installazione.
+2. **Esci da Trasmuta**: icona nella barra dei menu → **Esci**.
 3. Fai doppio clic sullo zip e trascina la nuova **Trasmuta** in **Applicazioni**. Alla domanda scegli **Sostituisci**.
-4. Riaprila.
+4. Riaprila. macOS la blocca come al primo avvio: sbloccala allo stesso modo (punto 4 dell'installazione).
 
-Impostazioni, preset e permessi restano quelli di prima: non serve concederli di nuovo. Se macOS mostra ancora
-l'avviso del punto 4, sbloccala allo stesso modo.
+Impostazioni, preset e permessi restano quelli di prima.
 
-Non vuoi gli avvisi? Disattivali in **About → Updates**, spegnendo **Check for updates automatically**.
+Non vuoi gli avvisi? Disattivali in **Informazioni → Aggiornamenti**, spegnendo **Controlla automaticamente gli aggiornamenti**.
 
 ### Verificare il download (facoltativo)
 
@@ -120,7 +126,7 @@ nuovo e aprilo con un doppio clic nel Finder.
 
 **Alcuni formati sono grigi nel menu.**
 Servono un motore aggiuntivo (ad esempio FFmpeg per video e audio, LibreOffice per alcuni documenti). Passa con il
-mouse sul formato per sapere quale, e scaricalo nella pagina **Engines** (Motori).
+mouse sul formato per sapere quale, e scaricalo nella pagina **Motori**.
 
 ---
 

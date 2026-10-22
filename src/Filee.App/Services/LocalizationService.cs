@@ -106,6 +106,9 @@ public sealed partial class LocalizationService : ILocalizer
             return Languages.First(l => l.Code.Equals(setting, StringComparison.OrdinalIgnoreCase)).Code;
 
         var ui = osLanguage();
+        // "it" and every region ("it-IT", "it-CH", …).
+        if (ui.Equals("it", StringComparison.OrdinalIgnoreCase) || ui.StartsWith("it-", StringComparison.OrdinalIgnoreCase))
+            return "it";
         if (ui.StartsWith("ja", StringComparison.OrdinalIgnoreCase))
             return "ja";
         if (ui.StartsWith("ko", StringComparison.OrdinalIgnoreCase))
