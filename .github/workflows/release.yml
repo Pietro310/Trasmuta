@@ -9,9 +9,9 @@
 # system built and passed its tests.
 #
 # Publishing a version: set <Version> in Directory.Build.props, add its section to CHANGELOG.md, push to main, then
-# either push the tag (git tag v1.2.3 && git push origin v1.2.3) or, without a local clone, run the workflow by hand
-# on main with "publish" ticked (Actions → Release → Run workflow): it makes the tag v<Version> itself, on the commit
-# it built, and stops if that tag already exists.
+# either push the tag (git tag v1.2.3 && git push origin v1.2.3), or push a branch release/v1.2.3 pointing at a commit
+# of main (where tags can't be pushed), or run the workflow by hand on main with "publish" ticked (Actions → Release →
+# Run workflow). The last two make the tag v<Version> themselves, on the commit they built, and stop if it exists.
 # Running it by hand without "publish" only builds the macOS files, as downloadable artifacts; so does a push to a
 # wip/ branch.
 
@@ -20,8 +20,7 @@ name: Release
 on:
   push:
     tags: ['v*.*.*']
-    branches: ['wip/**']
-    paths-ignore: ['**/*.md', 'docs/**']
+    branches: ['wip/**', 'release/v*']
   workflow_dispatch:
     inputs:
       publish:
@@ -33,7 +32,8 @@ permissions:
   contents: write
 
 jobs:
-  # What this run publishes: the pushed tag, or v<Version> when run by hand on main with "publish"; nothing otherwise.
+  # What this run publishes: the pushed tag; v<Version> for a release/v<Version> branch on a commit of main, or when run
+  # by hand on main with "publish"; nothing otherwise.
   plan:
     runs-on: ubuntu-latest
     outputs:
@@ -41,6 +41,8 @@ jobs:
       publish: ${{ steps.plan.outputs.publish }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - id: plan
         env:
@@ -49,12 +51,17 @@ jobs:
           if [ "$GITHUB_REF_TYPE" = tag ]; then
             echo "tag=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
             echo "publish=true" >> "$GITHUB_OUTPUT"
-          elif [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$PUBLISH" = true ]; then
-            if [ "$GITHUB_REF" != refs/heads/main ]; then
-              echo "::error::Publish only from main (this run is on $GITHUB_REF_NAME)"
+          elif { [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$PUBLISH" = true ]; } ||
+               [[ "$GITHUB_REF" == refs/heads/release/* ]]; then
+            tag="v$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)"
+            if [[ "$GITHUB_REF" == refs/heads/release/* ]] && [ "${GITHUB_REF_NAME#release/}" != "$tag" ]; then
+              echo "::error::Branch $GITHUB_REF_NAME does not match <Version> in Directory.Build.props ($tag)"
               exit 1
             fi
-            tag="v$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)"
+            if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+              echo "::error::Publish only commits of main ($GITHUB_SHA is not on main)"
+              exit 1
+            fi
             if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
               echo "::error::$tag exists already: raise <Version> in Directory.Build.props first"
               exit 1

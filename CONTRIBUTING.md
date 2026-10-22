@@ -31,7 +31,9 @@ Con questa variabile la copia ha dati, motori e istanza propri e non registra vo
    git tag v1.1.0 && git push origin v1.1.0
    ```
    Senza una copia locale del repository: Actions → **Release** → **Run workflow** sul ramo `main`, con **publish**
-   spuntato. Il workflow crea da sé il tag `v<Version>` sul commit che ha compilato (si ferma se esiste già).
+   spuntato. Dove i tag non si possono inviare (sessioni cloud) basta inviare un ramo `release/v1.1.0` che punti a un
+   commit di `main`. In entrambi i casi il workflow crea da sé il tag `v<Version>` sul commit che ha compilato (si
+   ferma se esiste già o se il commit non è su `main`).
 
 Il workflow **Release** (`.github/workflows/release.yml`) compila l'app per Apple Silicon e Intel su un Mac di
 GitHub, scarica e verifica i motori inclusi, pubblica i `.dmg` (prima installazione) e gli zip (aggiornamento
