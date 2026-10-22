@@ -21,7 +21,7 @@ internal static class MacAppMove
 
     /// <summary>/Applications when this account may change it (administrators), else Applications in the home folder.</summary>
     internal static string TargetFolder(string home, Func<string, bool> writable) =>
-        writable("/Applications") ? "/Applications" : Path.Combine(home, "Applications");
+        writable("/Applications") ? "/Applications" : home.TrimEnd('/') + "/Applications";
 
     /// <summary>
     /// Copies the running app into Applications and starts the script that opens it once this process has quit (with

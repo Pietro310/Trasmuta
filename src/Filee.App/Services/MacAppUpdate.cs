@@ -54,7 +54,7 @@ internal static class MacAppUpdate
     /// </summary>
     internal static bool IsInApplications(string bundle, string home) =>
         bundle.StartsWith("/Applications/", StringComparison.Ordinal) ||
-        bundle.StartsWith(Path.Combine(home, "Applications") + "/", StringComparison.Ordinal);
+        bundle.StartsWith(home.TrimEnd('/') + "/Applications/", StringComparison.Ordinal);
 
     internal static string? BundleOf(string baseDirectory)
     {

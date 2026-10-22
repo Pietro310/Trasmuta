@@ -38,7 +38,7 @@ public class MacAppMoveTests
     public void Administrators_get_the_shared_Applications_folder_others_their_own()
     {
         Assert.Equal("/Applications", MacAppMove.TargetFolder(Home, _ => true));
-        Assert.Equal(Path.Combine(Home, "Applications"), MacAppMove.TargetFolder(Home, _ => false));
+        Assert.Equal("/Users/a/Applications", MacAppMove.TargetFolder(Home, _ => false));
     }
 
     [Fact]

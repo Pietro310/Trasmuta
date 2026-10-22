@@ -12,6 +12,7 @@ public class MacAppUpdateTests
     [Fact]
     public void The_bundle_is_found_from_its_executable_folder()
     {
+        Assert.SkipWhen(OperatingSystem.IsWindows(), "macOS paths: Windows writes them with backslashes.");
         Assert.Equal("/Users/a/Applications/Trasmuta.app",
             MacAppUpdate.BundleOf("/Users/a/Applications/Trasmuta.app/Contents/MacOS/"));
         Assert.Null(MacAppUpdate.BundleOf("/Users/a/src/Filee.App/bin/Release/net10.0/"));
