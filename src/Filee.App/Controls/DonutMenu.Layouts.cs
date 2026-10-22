@@ -104,7 +104,7 @@ public sealed partial class DonutMenu
     }
 
     private Size CardsMeasure() => Footprint(Layout, OuterRadius, ReserveSubRing || Items?.Any(i => i.IsGroup) == true,
-        Count, Items?.Max(i => i.Children?.Count ?? 0) ?? 0).Size;
+        Count, Items?.Select(i => i.Children?.Count ?? 0).DefaultIfEmpty(0).Max() ?? 0).Size;
 
     private Rect HeaderRect => new(CardPad, CardPad, ContentWidth(Layout), HeaderHeight);
 

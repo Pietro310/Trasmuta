@@ -53,6 +53,32 @@ public class MenuLayoutTests
     }
 
     [AvaloniaTheory]
+    [InlineData(MenuLayout.Ring)]
+    [InlineData(MenuLayout.Fan)]
+    [InlineData(MenuLayout.List)]
+    [InlineData(MenuLayout.Grid)]
+    public void Every_style_opens_for_a_drag_before_files_are_known(MenuLayout layout)
+    {
+        // A drag gesture shows the window before any file entered it: the menu has no presets yet.
+        TestServices.EnsureInitialized("en");
+        AppHost.Get<UserDataStore>().Settings.Donut.Layout = layout;
+        var radial = AppHost.Get<RadialController>();
+        try
+        {
+            radial.ShowForDrag(400, 400);
+            RenderTests.Pump();
+            Assert.NotNull(radial.Window);
+            Assert.Empty(radial.Window!.DonutControl.Items ?? []);
+            Assert.True(radial.Window.DonutControl.DesiredSize.Height > 0);
+        }
+        finally
+        {
+            radial.Close(animate: false);
+            AppHost.Get<UserDataStore>().Settings.Donut.Layout = MenuLayout.Ring;
+        }
+    }
+
+    [AvaloniaTheory]
     [InlineData(MenuLayout.List)]
     [InlineData(MenuLayout.Grid)]
     public void Card_styles_hit_the_header_and_each_card(MenuLayout layout)
