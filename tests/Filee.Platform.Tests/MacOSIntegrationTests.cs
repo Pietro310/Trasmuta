@@ -19,7 +19,7 @@ public sealed class MacOSIntegrationTests
     [Fact]
     public void ServiceSwitchWritesTheEntrySystemSettingsUses()
     {
-        Assert.Equal("\"com.filee.app - Convert with Filee - convertFiles\"", MacOSIntegrationFiles.ServiceStatusKey);
+        Assert.Equal("\"com.trasmuta.app - Converti con Trasmuta - convertFiles\"", MacOSIntegrationFiles.ServiceStatusKey);
         Assert.Contains("\"enabled_context_menu\" = 0;", MacOSIntegrationFiles.ServiceStatus(false));
         Assert.Contains("\"ContextMenu\" = 1;", MacOSIntegrationFiles.ServiceStatus(true));
     }
@@ -32,12 +32,12 @@ public sealed class MacOSIntegrationTests
         var service = Property(root, "NSServices").Element("dict")!;
         Assert.Equal(MacOSServicesProvider.MenuItem, Property(Property(service, "NSMenuItem"), "default").Value);
         Assert.Equal(MacOSServicesProvider.Message, Property(service, "NSMessage").Value);
-        Assert.Equal("Filee", Property(service, "NSPortName").Value);
+        Assert.Equal("Trasmuta", Property(service, "NSPortName").Value);
         Assert.Equal("public.item", Property(service, "NSSendFileTypes").Element("string")!.Value);
         // Each translation names the same menu title.
         foreach (var strings in Directory.GetFiles(installer, "ServicesMenu.strings", SearchOption.AllDirectories))
             Assert.StartsWith($"\"{MacOSServicesProvider.MenuItem}\" = ", File.ReadAllLines(strings).Single(l => l.StartsWith('"')));
-        Assert.Equal(4, Directory.GetFiles(installer, "ServicesMenu.strings", SearchOption.AllDirectories).Length);
+        Assert.Equal(5, Directory.GetFiles(installer, "ServicesMenu.strings", SearchOption.AllDirectories).Length);
     }
 
     private static string RepositoryRoot()

@@ -15,18 +15,18 @@ import time
 
 app = os.environ['FILEE_SMOKE_APP']
 temp = pathlib.Path(os.environ.get('RUNNER_TEMP', '/tmp'))
-shots = temp / 'filee-screens'
+shots = temp / 'trasmuta-screens'
 shots.mkdir(exist_ok=True)
 is_linux = sys.platform.startswith('linux')
 is_macos = sys.platform == 'darwin'
 command = [app, '--settings', '--install-engines=', '--context-menu=off', '--start-with-system=off']
 if is_linux:
     command = ['xvfb-run', '-a', 'env', '-u', 'WAYLAND_DISPLAY', 'XDG_SESSION_TYPE=x11', *command]
-log_path = temp / 'filee-startup.log'
+log_path = temp / 'trasmuta-startup.log'
 
 
 def filee_logs():
-    for folder in (pathlib.Path.home() / '.config/Filee/logs', pathlib.Path.home() / 'Library/Application Support/Filee/logs'):
+    for folder in (pathlib.Path.home() / '.config/Trasmuta/logs', pathlib.Path.home() / 'Library/Application Support/Trasmuta/logs'):
         if folder.is_dir():
             yield from sorted(folder.glob('*.log'))
 

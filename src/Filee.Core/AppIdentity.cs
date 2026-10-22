@@ -11,4 +11,7 @@ public static class AppIdentity
 
     /// <summary>macOS bundle identifier (also the LaunchAgent label and the Services status key).</summary>
     public const string BundleId = "com.trasmuta.app";
+
+    /// <summary>Lower-case name for files, folders and commands: Linux desktop files, the CLI link ("trasmuta").</summary>
+    public const string Slug = "trasmuta";
 }

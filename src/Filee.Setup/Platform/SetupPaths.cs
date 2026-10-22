@@ -26,10 +26,10 @@ public sealed record SetupPaths(
     string SystemFolder)
 {
     /// <summary>Filee's settings folder (UserDataStore.DefaultDirectory without FILEE_DATA_DIR).</summary>
-    public string SettingsFolder => Path.Combine(AppData, "Filee");
+    public string SettingsFolder => Path.Combine(AppData, Filee.Core.AppIdentity.Name);
 
     /// <summary>Downloaded engines (EngineEnvironment.DownloadRoot).</summary>
-    public string EnginesFolder => Path.Combine(LocalAppData, "Filee", "engines");
+    public string EnginesFolder => Path.Combine(LocalAppData, Filee.Core.AppIdentity.Name, "engines");
 
     public string StartMenu(InstallScope scope) => scope == InstallScope.Machine ? CommonStartMenu : UserStartMenu;
 

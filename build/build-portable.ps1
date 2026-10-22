@@ -1,4 +1,5 @@
-# Builds the Linux or macOS portable package (tar.gz + SHA256SUMS) on its own operating system.
+# Builds the Linux portable package (tar.gz + SHA256SUMS) on Linux. Trasmuta.app for macOS comes from
+# build/build-trasmuta-macos.sh; the macOS branch below is upstream's and is no longer used.
 #
 # Linux packages must run on Ubuntu 22.04 (glibc 2.35). rhwp's Linux release needs a newer glibc, so CI builds it from
 # source on Ubuntu 22.04 (build/build-linux-native.py) and passes it in:
@@ -25,6 +26,9 @@ if (-not $Runtime) {
 if (($Runtime.StartsWith('osx-') -and -not $IsMacOS) -or ($Runtime.StartsWith('linux-') -and -not $IsLinux)) {
     throw "Build $Runtime on its native operating system."
 }
+if ($Runtime.StartsWith('osx-')) {
+    throw 'Build Trasmuta.app with build/build-trasmuta-macos.sh.'
+}
 if ($RhwpOverride -and -not $Runtime.StartsWith('linux-')) {
     throw '-RhwpOverride is for Linux packages.'
 }
@@ -43,7 +47,7 @@ if ($Version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$') {
     throw 'Version must be a three-part version with an optional prerelease suffix.'
 }
 $bundleVersion = ($Version -split '-')[0]
-$packageName = "Filee-$Version-$Runtime"
+$packageName = "Trasmuta-$Version-$Runtime"
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 $OutputDir = (Resolve-Path -LiteralPath $OutputDir).Path
 $archive = Join-Path $OutputDir "$packageName.tar.gz"
@@ -79,7 +83,9 @@ if ($RhwpOverride) {
 else {
     & (Join-Path $PSScriptRoot 'fetch-portable-engines.ps1') -Runtime $Runtime -Destination $engines
 }
-foreach ($name in @('Filee', 'filee-cli')) {
+# The program is called like the app: what the desktop entry, the window list and ps show.
+Move-Item -LiteralPath (Join-Path $publish 'Filee') -Destination (Join-Path $publish 'Trasmuta')
+foreach ($name in @('Trasmuta', 'filee-cli')) {
     $executable = Join-Path $publish $name
     if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) { throw "Publish did not produce $name" }
     Invoke-Checked 'Executable permissions' { chmod +x $executable }
@@ -133,7 +139,7 @@ if ($Runtime.StartsWith('osx-')) {
     Copy-Item -LiteralPath (Join-Path $root 'installer/macos/INSTALL.txt') -Destination $package
 }
 else {
-    Copy-Item -LiteralPath (Join-Path $root 'src/Filee.App/Assets/Icons/filee.png') -Destination $package
+    Copy-Item -LiteralPath (Join-Path $root 'src/Filee.App/Assets/Icons/filee.png') -Destination (Join-Path $package 'trasmuta.png')
     Copy-Item -LiteralPath (Join-Path $root 'installer/linux/install.sh') -Destination $package
     Copy-Item -LiteralPath (Join-Path $root 'installer/linux/uninstall.sh') -Destination $package
     Copy-Item -LiteralPath (Join-Path $root 'installer/linux/INSTALL.txt') -Destination $package

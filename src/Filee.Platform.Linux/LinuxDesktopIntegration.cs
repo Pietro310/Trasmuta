@@ -7,7 +7,7 @@ namespace Filee.Platform.Linux;
 
 internal sealed class LinuxDesktopIntegration(string configHome, string dataHome)
 {
-    internal const string ThunarActionId = "filee-convert";
+    internal const string ThunarActionId = Filee.Core.AppIdentity.Slug + "-convert";
     internal const string ThunarAcceleratorPath = "<Actions>/ThunarActions/uca-action-" + ThunarActionId;
 
     internal static string? ToThunarAccelerator(TriggerGesture gesture)
@@ -90,13 +90,13 @@ internal sealed class LinuxDesktopIntegration(string configHome, string dataHome
 
     public void SetAutostart(bool enabled, string executablePath)
     {
-        var path = Path.Combine(configHome, "autostart", "filee.desktop");
+        var path = Path.Combine(configHome, "autostart", Filee.Core.AppIdentity.Slug + ".desktop");
         if (!enabled)
         {
             File.Delete(path);
             return;
         }
-        Write(path, $"[Desktop Entry]\nType=Application\nName=Filee\nExec={DesktopArgument(executablePath)} --background\nTerminal=false\nX-GNOME-Autostart-enabled=true\n");
+        Write(path, $"[Desktop Entry]\nType=Application\nName={Filee.Core.AppIdentity.Name}\nExec={DesktopArgument(executablePath)} --background\nTerminal=false\nX-GNOME-Autostart-enabled=true\n");
     }
 
     public void SetContextMenu(bool enabled, string executablePath, string label)
@@ -104,10 +104,10 @@ internal sealed class LinuxDesktopIntegration(string configHome, string dataHome
         var thunarPath = Path.Combine(configHome, "Thunar", "uca.xml");
         var menuPaths = new[]
         {
-            Path.Combine(dataHome, "Thunar", "sendto", "filee.desktop"),
-            Path.Combine(dataHome, "nautilus", "scripts", "Filee"),
-            Path.Combine(dataHome, "nemo", "actions", "filee.nemo_action"),
-            Path.Combine(dataHome, "kio", "servicemenus", "filee.desktop"),
+            Path.Combine(dataHome, "Thunar", "sendto", Filee.Core.AppIdentity.Slug + ".desktop"),
+            Path.Combine(dataHome, "nautilus", "scripts", Filee.Core.AppIdentity.Name),
+            Path.Combine(dataHome, "nemo", "actions", Filee.Core.AppIdentity.Slug + ".nemo_action"),
+            Path.Combine(dataHome, "kio", "servicemenus", Filee.Core.AppIdentity.Slug + ".desktop"),
         };
         var thunar = LoadThunarActions(thunarPath);
         UpdateThunarAction(thunar, enabled, executablePath, label);
