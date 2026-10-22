@@ -13,7 +13,7 @@ using Filee.Core.Localization;
 namespace Filee.App.Services;
 
 /// <summary>JSON based localization with live language switching.</summary>
-public sealed class LocalizationService : ILocalizer
+public sealed partial class LocalizationService : ILocalizer
 {
     /// <summary>Languages shipped with Filee: code → native name (shown in the language picker; see AppLanguages).</summary>
     public static readonly IReadOnlyList<(string Code, string NativeName)> Languages = AppLanguages.All;
@@ -142,8 +142,23 @@ public sealed class LocalizationService : ILocalizer
         if (!(loader?.Exists(uri) ?? AssetLoader.Exists(uri)))
             return [];
         using var stream = loader?.Open(uri) ?? AssetLoader.Open(uri);
-        return JsonSerializer.Deserialize(stream, AppJsonContext.Default.DictionaryStringString) ?? [];
+        var strings = JsonSerializer.Deserialize(stream, AppJsonContext.Default.DictionaryStringString) ?? [];
+        foreach (var key in strings.Keys.ToList())
+            strings[key] = WithAppName(strings[key]);
+        return strings;
     }
+
+    /// <summary>
+    /// The translations name the app "Filee": shows <see cref="Filee.Core.AppIdentity.Name"/> instead, leaving URLs
+    /// (github.com/KnifeLemon/Filee) and file names (Filee.app) alone.
+    /// </summary>
+    internal static string WithAppName(string text) =>
+        text.Contains("Filee", StringComparison.Ordinal)
+            ? AppNamePattern().Replace(text, Filee.Core.AppIdentity.Name)
+            : text;
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"(?<![/\w])Filee(?!\.\w)\b")]
+    private static partial System.Text.RegularExpressions.Regex AppNamePattern();
 
     /// <summary>
     /// One string in the system's language, before Avalonia (and the settings) are loaded: for the messages a launch

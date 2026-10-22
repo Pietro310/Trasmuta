@@ -855,7 +855,7 @@ public sealed class JobQueue : IAsyncDisposable
     }
 
     /// <summary>Where every job has its work folder, named by the job's <see cref="ConversionJob.Id"/>.</summary>
-    public static string DefaultWorkRoot => Path.Combine(Path.GetTempPath(), "Filee");
+    public static string DefaultWorkRoot => Path.Combine(Path.GetTempPath(), Filee.Core.AppIdentity.Name);
 
     /// <summary>
     /// Deletes the work folders of jobs a crash, a forced quit or a power cut kept from removing them: intermediate

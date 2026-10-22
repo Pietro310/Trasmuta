@@ -135,6 +135,9 @@ public sealed partial class UpdateService : ObservableObject
         typeof(UpdateService).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
             .Any(a => a.Key == "FileeRelease" && a.Value == "true");
 
+    /// <summary>Update checks against GitHub releases (off in Trasmuta; tests turn them on).</summary>
+    internal bool UpdatesEnabled { get; init; }
+
     /// <summary>Checks the latest release now. Returns the newer version, or null when up to date or offline.</summary>
     public async Task<string?> CheckAsync(CancellationToken cancellationToken = default)
     {
@@ -149,6 +152,9 @@ public sealed partial class UpdateService : ObservableObject
     /// </summary>
     internal async Task<bool> RefreshAsync(bool announce, CancellationToken cancellationToken = default)
     {
+        // Trasmuta has no releases of its own: Filee's would offer to replace it with upstream Filee.
+        if (!UpdatesEnabled)
+            return false;
         try
         {
             var api = RepositoryUrl.TrimEnd('/').Replace("https://github.com/", "https://api.github.com/repos/", StringComparison.OrdinalIgnoreCase)
@@ -267,7 +273,7 @@ public sealed partial class UpdateService : ObservableObject
         try
         {
             var progress = new Progress<int>(percent => DownloadPercent = percent);
-            installer = await DownloadInstallerAsync(Path.Combine(Path.GetTempPath(), "Filee-update"), progress);
+            installer = await DownloadInstallerAsync(Path.Combine(Path.GetTempPath(), Filee.Core.AppIdentity.Name + "-update"), progress);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or IOException
                                        or InvalidDataException or UnauthorizedAccessException)

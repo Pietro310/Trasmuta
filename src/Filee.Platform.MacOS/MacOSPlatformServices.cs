@@ -65,7 +65,7 @@ public sealed class MacOSPlatformServices : IPlatformServices
 
     public void SetStartWithSystem(bool enabled, string executablePath)
     {
-        var path = Path.Combine(UserLibrary, "LaunchAgents", "com.filee.app.plist");
+        var path = Path.Combine(UserLibrary, "LaunchAgents", Filee.Core.AppIdentity.BundleId + ".plist");
         if (!enabled)
         {
             File.Delete(path);

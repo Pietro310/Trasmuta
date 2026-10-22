@@ -1,2 +1,2 @@
-/* Finder's right-click menu: the title of Filee's service (NSServices in Info.plist). */
-"Convert with Filee" = "用 Filee 轉換";
+/* Finder's right-click menu: the title of Trasmuta's service (NSServices in Info.plist). */
+"Converti con Trasmuta" = "用 Trasmuta 轉換";
