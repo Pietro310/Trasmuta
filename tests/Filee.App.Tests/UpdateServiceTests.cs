@@ -29,7 +29,7 @@ public class UpdateServiceTests
     [MemberData(nameof(OfflineFailures))]
     public async Task Update_check_without_internet_is_quiet(string failure)
     {
-        var updates = new UpdateService(NullLogger<UpdateService>.Instance, new FakeNetwork(failure)) { UpdatesEnabled = true };
+        var updates = new UpdateService(NullLogger<UpdateService>.Instance, new FakeNetwork(failure));
 
         var found = await updates.CheckAsync(TestContext.Current.CancellationToken);
 
@@ -183,7 +183,7 @@ public class UpdateServiceTests
 
     private static UpdateService Updates(FakeRelease network, long installerSize)
     {
-        var updates = new UpdateService(NullLogger<UpdateService>.Instance, network) { UpdatesEnabled = true };
+        var updates = new UpdateService(NullLogger<UpdateService>.Instance, network);
         updates.UseRelease(new UpdateService.ReleaseFile("Filee-9.9.9-win-Setup.exe", Base + "Filee-9.9.9-win-Setup.exe", installerSize),
             new UpdateService.ReleaseFile("Filee-9.9.9-SHA256SUMS.txt", Base + "Filee-9.9.9-SHA256SUMS.txt", 100));
         return updates;
@@ -233,7 +233,7 @@ public class UpdateServiceTests
     {
         // Installed copy, but the release offers no installer to download: the app shows an alert first and opens
         // the website only after OK (WindowService.ShowUpdateFailedAsync).
-        var updates = new UpdateService(NullLogger<UpdateService>.Instance, new FakeNetwork("no network")) { UpdatesEnabled = true, InstallsItself = true };
+        var updates = new UpdateService(NullLogger<UpdateService>.Instance, new FakeNetwork("no network")) { InstallsItself = true };
         var reported = 0;
         updates.UpdateFailed += (_, _) => reported++;
 
@@ -247,7 +247,7 @@ public class UpdateServiceTests
     public async Task Update_installs_the_release_that_is_latest_now_not_the_one_found_earlier()
     {
         // An earlier check found 9.9.9; 9.9.10 came out before Update was pressed.
-        var updates = new UpdateService(NullLogger<UpdateService>.Instance, new LatestRelease("v9.9.10")) { UpdatesEnabled = true };
+        var updates = new UpdateService(NullLogger<UpdateService>.Instance, new LatestRelease("v9.9.10"));
         updates.UseRelease(new UpdateService.ReleaseFile("Filee-9.9.9-win-Setup.exe", Base + "Filee-9.9.9-win-Setup.exe", 1),
             new UpdateService.ReleaseFile("Filee-9.9.9-SHA256SUMS.txt", Base + "Filee-9.9.9-SHA256SUMS.txt", 1));
         var announced = 0;

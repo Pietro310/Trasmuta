@@ -1,0 +1,97 @@
+# Builds Trasmuta.app for Apple Silicon and Intel Macs and, for a version tag (v1.2.3), publishes a GitHub Release
+# with both zips and their SHA-256 checksums. The app's update check (UpdateService) reads that release: its text is
+# the version's section of CHANGELOG.md, including the hidden "<!-- update" block that sets how insistent the
+# notice is.
+#
+# Publishing a version: set <Version> in Directory.Build.props, add its section to CHANGELOG.md, push, then
+#   git tag v1.2.3 && git push origin v1.2.3
+# Running the workflow by hand (Actions → Release → Run workflow) only builds the zips, as downloadable artifacts.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        runtime: [osx-arm64, osx-x64]
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Check the tag matches the version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match <Version>$version</Version> in Directory.Build.props"
+            exit 1
+          fi
+
+      - name: Fetch the bundled engines (7-Zip, rhwp; pinned and checksum-verified)
+        shell: pwsh
+        run: build/fetch-portable-engines.ps1 -Runtime ${{ matrix.runtime }} -Destination "$env:RUNNER_TEMP/engines"
+
+      - name: Build and pack
+        env:
+          TRASMUTA_RUNTIME: ${{ matrix.runtime }}
+          TRASMUTA_ENGINES: ${{ runner.temp }}/engines
+          TRASMUTA_OUT: ${{ runner.temp }}/out
+        run: build/build-trasmuta-macos.sh --zip
+
+      - name: Check the packed app
+        run: |
+          mkdir "$RUNNER_TEMP/check"
+          ditto -x -k "$RUNNER_TEMP"/out/Trasmuta-*.zip "$RUNNER_TEMP/check"
+          codesign --verify --deep --strict "$RUNNER_TEMP/check/Trasmuta.app"
+          test -x "$RUNNER_TEMP/check/Trasmuta.app/Contents/MacOS/engines/7zip/7zz"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Trasmuta-${{ matrix.runtime }}
+          path: ${{ runner.temp }}/out/Trasmuta-*.zip
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums and release notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          (cd dist && sha256sum Trasmuta-*.zip > "Trasmuta-$version-SHA256SUMS.txt")
+          # The version's section of CHANGELOG.md: from its "## <version>" heading to the next "## ".
+          awk -v v="$version" '
+            /^## / { if (found) exit; if (index($0, "## " v) == 1) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "::error::CHANGELOG.md has no section for $version"
+            exit 1
+          fi
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" dist/* --title "Trasmuta $version" --notes-file notes.md --verify-tag

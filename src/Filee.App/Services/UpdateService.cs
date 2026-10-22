@@ -81,7 +81,7 @@ public sealed partial class UpdateService : ObservableObject
     public static string LatestReleaseUrl => RepositoryUrl.TrimEnd('/') + "/releases/latest";
 
     /// <summary>The website: one big download button, friendlier than the GitHub release page.</summary>
-    public const string WebsiteUrl = "https://filee.sh/";
+    public const string WebsiteUrl = "https://github.com/Pietro310/Trasmuta/releases/latest";
 
     /// <summary>
     /// True when this copy was installed by Setup, which puts its uninstaller next to Filee.exe (uninstall.exe; the
@@ -135,8 +135,11 @@ public sealed partial class UpdateService : ObservableObject
         typeof(UpdateService).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
             .Any(a => a.Key == "FileeRelease" && a.Value == "true");
 
-    /// <summary>Update checks against GitHub releases (off in Trasmuta; tests turn them on).</summary>
-    internal bool UpdatesEnabled { get; init; }
+    /// <summary>
+    /// Update checks against the GitHub releases of <see cref="RepositoryUrl"/> (Trasmuta's own, published by
+    /// .github/workflows/release.yml). Tests that must stay offline turn them off.
+    /// </summary>
+    internal bool UpdatesEnabled { get; init; } = true;
 
     /// <summary>Checks the latest release now. Returns the newer version, or null when up to date or offline.</summary>
     public async Task<string?> CheckAsync(CancellationToken cancellationToken = default)
@@ -152,7 +155,6 @@ public sealed partial class UpdateService : ObservableObject
     /// </summary>
     internal async Task<bool> RefreshAsync(bool announce, CancellationToken cancellationToken = default)
     {
-        // Trasmuta has no releases of its own: Filee's would offer to replace it with upstream Filee.
         if (!UpdatesEnabled)
             return false;
         try

@@ -1,21 +1,27 @@
 #!/bin/sh
-# Builds Trasmuta.app for this Mac (Apple Silicon or Intel) and, with --install, copies it to ~/Applications.
-# A shell version of the macOS part of build-portable.ps1, so no PowerShell is needed. The bundled engines (7-Zip,
-# rhwp) are copied from an installed Filee.app when there is one; otherwise they are left out and the app offers
-# to download what it needs.
+# Builds Trasmuta.app (Apple Silicon or Intel) and, with --install, copies it to ~/Applications; with --zip, packs
+# it as Trasmuta-<version>-<runtime>.zip for a release. A shell version of the macOS part of build-portable.ps1.
 #
 #   build/build-trasmuta-macos.sh            build into $TMPDIR/trasmuta-build/Trasmuta.app
 #   build/build-trasmuta-macos.sh --install  build, then replace ~/Applications/Trasmuta.app
+#   build/build-trasmuta-macos.sh --zip      build, then pack the zip next to it (what the Release workflow does)
+#
+# Optional settings (the Release workflow sets them):
+#   TRASMUTA_RUNTIME  osx-arm64 or osx-x64 (default: this Mac's)
+#   TRASMUTA_ENGINES  folder with the bundled engines (7zip, rhwp), as fetch-portable-engines.ps1 makes it.
+#                     Default: those of an installed Filee.app, else none (the app offers downloads instead).
+#   TRASMUTA_OUT      where to build (default: $TMPDIR/trasmuta-build)
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)
 export PATH="/usr/local/share/dotnet:$PATH" DOTNET_CLI_TELEMETRY_OPTOUT=1
 case "$(uname -m)" in arm64) runtime=osx-arm64 ;; *) runtime=osx-x64 ;; esac
+runtime="${TRASMUTA_RUNTIME:-$runtime}"
 version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' "$root/Directory.Build.props")
 
 # Assembled outside the repository: Documents may sync through iCloud Drive, whose file-provider attributes make
 # codesign refuse the bundle.
-out="${TMPDIR:-/tmp}/trasmuta-build"
+out="${TRASMUTA_OUT:-${TMPDIR:-/tmp}/trasmuta-build}"
 app="$out/Trasmuta.app"
 macos="$app/Contents/MacOS"
 resources="$app/Contents/Resources"
@@ -30,11 +36,17 @@ done
 mv "$macos/Filee" "$macos/Trasmuta"
 chmod +x "$macos/Trasmuta" "$macos/filee-cli"
 
-filee_engines="$HOME/Applications/Filee.app/Contents/MacOS/engines"
-[ -d "$filee_engines" ] || filee_engines="/Applications/Filee.app/Contents/MacOS/engines"
-if [ -d "$filee_engines" ]; then
-    /usr/bin/ditto "$filee_engines" "$macos/engines"
-    echo "Engines copied from $filee_engines"
+engines="${TRASMUTA_ENGINES:-}"
+if [ -z "$engines" ]; then
+    engines="$HOME/Applications/Filee.app/Contents/MacOS/engines"
+    [ -d "$engines" ] || engines="/Applications/Filee.app/Contents/MacOS/engines"
+fi
+if [ -d "$engines" ]; then
+    /usr/bin/ditto "$engines" "$macos/engines"
+    echo "Engines copied from $engines"
+elif [ -n "${TRASMUTA_ENGINES:-}" ]; then
+    echo "TRASMUTA_ENGINES is not a folder: $TRASMUTA_ENGINES" >&2
+    exit 1
 fi
 
 sed -e "s/__VERSION__/$version/" -e "s/__BUNDLE_VERSION__/$version/" "$root/installer/macos/Info.plist" \
@@ -68,6 +80,14 @@ codesign --force --sign - --entitlements "$entitlements" -r="$requirement" "$mac
 codesign --force --sign - --entitlements "$entitlements" -r="$requirement" "$app"
 codesign --verify --deep --strict "$app"
 echo "Built $app ($version, $runtime)"
+
+if [ "${1:-}" = "--zip" ]; then
+    zip="$out/Trasmuta-$version-$runtime.zip"
+    rm -f "$zip"
+    # ditto keeps the signature (stored in extended attributes for the assemblies) and the executable bits.
+    /usr/bin/ditto -c -k --keepParent "$app" "$zip"
+    echo "Packed $zip"
+fi
 
 if [ "${1:-}" = "--install" ]; then
     osascript -e 'quit app id "com.trasmuta.app"' 2>/dev/null || true

@@ -51,7 +51,20 @@ cartella di destinazione e nome dei file. I preset si riordinano trascinandoli i
 Alcune conversioni usano motori opzionali (FFmpeg, LibreOffice, Ghostscript, Pandoc, calibre) che Trasmuta scarica
 dalle fonti ufficiali solo quando servono. I dettagli sono in [docs/ENGINES.md](docs/ENGINES.md).
 
-## Installazione su macOS
+## Scarica
+
+1. Apri la pagina [Releases](https://github.com/Pietro310/Trasmuta/releases/latest) e scarica lo zip per il tuo Mac:
+   `osx-arm64` per Apple Silicon (M1, M2, M3, …), `osx-x64` per i Mac Intel.
+2. Apri lo zip e trascina **Trasmuta.app** nella cartella Applicazioni.
+3. Al primo avvio macOS la blocca perché non è firmata da Apple: vai in Impostazioni di Sistema → Privacy e sicurezza
+   e scegli **Apri comunque**. Serve una volta sola.
+4. Concedi a Trasmuta i permessi **Accessibilità** (per i gesti) e **Automazione del Finder** (per leggere la
+   selezione) quando li chiede.
+
+Quando esce una nuova versione Trasmuta te lo segnala: scarica il nuovo zip e sostituisci l'app in Applicazioni. Le
+impostazioni e i permessi restano. Il controllo si può disattivare in Informazioni → Aggiornamenti.
+
+## Compilare da sé
 
 Serve il [.NET 10 SDK](https://dotnet.microsoft.com/download) (con Homebrew: `brew install --cask dotnet-sdk`).
 

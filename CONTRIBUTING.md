@@ -21,6 +21,23 @@ FILEE_DATA_DIR=/tmp/trasmuta-prova dotnet run --project src/Filee.App
 
 Con questa variabile la copia ha dati, motori e istanza propri e non registra voci di sistema.
 
+## Pubblicare una versione
+
+1. In `Directory.Build.props` imposta `<Version>` al nuovo numero, ad esempio `1.1.0`.
+2. In `CHANGELOG.md` aggiungi in cima la sezione `## 1.1.0`, con il blocco nascosto `<!-- update … -->` che decide
+   quanto insistente è l'avviso (le istruzioni sono all'inizio del file).
+3. Fai commit e push, poi crea il tag:
+   ```bash
+   git tag v1.1.0 && git push origin v1.1.0
+   ```
+
+Il workflow **Release** (`.github/workflows/release.yml`) compila l'app per Apple Silicon e Intel su un Mac di
+GitHub, scarica e verifica i motori inclusi, pubblica gli zip con le impronte SHA-256 nella pagina della versione e ne
+usa la sezione del CHANGELOG come testo. Entro qualche ora le app installate mostrano l'avviso. Se tag e `<Version>`
+non coincidono, o manca la sezione nel CHANGELOG, il workflow si ferma senza pubblicare nulla.
+
+Per provare solo la compilazione: Actions → Release → **Run workflow**; gli zip restano scaricabili come artefatti.
+
 ## Struttura
 
 | Cartella | Contenuto |
