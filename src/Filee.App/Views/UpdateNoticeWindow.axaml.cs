@@ -39,7 +39,7 @@ public partial class UpdateNoticeWindow : Window
     {
         if (_updates is null)
             return;
-        if (!UpdateService.IsInstalled)
+        if (!UpdateService.UpdatesInPlace)
         {
             _updates.OpenDownloadPage();
             Close();

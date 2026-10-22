@@ -7,10 +7,10 @@ namespace Filee.App.Services;
 public static class UpdateTexts
 {
     /// <summary>Button text: "Update" in an installed copy (it installs by itself), "Download" in a portable one.</summary>
-    public static string ButtonKey => UpdateService.IsInstalled ? "update.install" : "update.download";
+    public static string ButtonKey => UpdateService.UpdatesInPlace ? "update.install" : "update.download";
 
     /// <summary>What the update button does, for the notice and tooltips.</summary>
-    public static string HowKey => UpdateService.IsInstalled ? "update.notice_text"
+    public static string HowKey => UpdateService.UpdatesInPlace ? "update.notice_text"
         : OperatingSystem.IsMacOS() ? "update.notice_text_mac" : "update.notice_text_portable";
 
     /// <summary>Short label for the sidebar button and the tray menu ("Update to 1.4.0", "Downloading… 42%").</summary>

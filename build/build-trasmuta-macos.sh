@@ -11,6 +11,7 @@
 #   TRASMUTA_ENGINES  folder with the bundled engines (7zip, rhwp), as fetch-portable-engines.ps1 makes it.
 #                     Default: those of an installed Filee.app, else none (the app offers downloads instead).
 #   TRASMUTA_OUT      where to build (default: $TMPDIR/trasmuta-build)
+#   TRASMUTA_VERSION  version to stamp instead of Directory.Build.props' (to try an update from an older one)
 set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)
@@ -18,6 +19,7 @@ export PATH="/usr/local/share/dotnet:$PATH" DOTNET_CLI_TELEMETRY_OPTOUT=1
 case "$(uname -m)" in arm64) runtime=osx-arm64 ;; *) runtime=osx-x64 ;; esac
 runtime="${TRASMUTA_RUNTIME:-$runtime}"
 version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' "$root/Directory.Build.props")
+version="${TRASMUTA_VERSION:-$version}"
 
 # Assembled outside the repository: Documents may sync through iCloud Drive, whose file-provider attributes make
 # codesign refuse the bundle.

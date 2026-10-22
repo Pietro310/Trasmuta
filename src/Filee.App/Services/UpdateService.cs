@@ -93,8 +93,22 @@ public sealed partial class UpdateService : ObservableObject
     internal static bool IsInstalledIn(string folder) =>
         File.Exists(Path.Combine(folder, "uninstall.exe")) || File.Exists(Path.Combine(folder, "unins000.exe"));
 
-    /// <summary>Whether <see cref="UpdateAsync"/> installs by itself (<see cref="IsInstalled"/>; tests set it).</summary>
-    internal bool InstallsItself { get; init; } = IsInstalled;
+    /// <summary>
+    /// This copy updates itself: installed by Setup on Windows, or a published Trasmuta.app the user may replace on
+    /// macOS (<see cref="MacAppUpdate"/>). Otherwise Update opens the download page.
+    /// </summary>
+    public static bool UpdatesInPlace => IsInstalled || MacAppUpdate.CanReplace;
+
+    /// <summary>Whether <see cref="UpdateAsync"/> installs by itself (<see cref="UpdatesInPlace"/>; tests set it).</summary>
+    internal bool InstallsItself { get; init; } = UpdatesInPlace;
+
+    /// <summary>
+    /// The end of the release file an update downloads: this Mac's zip when running from an .app, else the Windows
+    /// installer.
+    /// </summary>
+    internal string InstallerSuffix { get; init; } = MacAppUpdate.RunningBundle is not null ? MacAppUpdate.ZipSuffix : WindowsInstallerSuffix;
+
+    private const string WindowsInstallerSuffix = "-win-Setup.exe";
 
     /// <summary>The newer version found by the last check (e.g. "1.0.2"), or null when up to date / unknown.</summary>
     [ObservableProperty]
@@ -171,7 +185,7 @@ public sealed partial class UpdateService : ObservableObject
             using var json = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
             var tag = json.RootElement.TryGetProperty("tag_name", out var value) ? value.GetString() : null;
             var newer = IsNewer(tag, CurrentVersion) ? Normalize(tag!) : null;
-            (_installer, _checksums) = FindFiles(json.RootElement);
+            (_installer, _checksums) = FindFiles(json.RootElement, InstallerSuffix);
             IReadOnlyList<ReleaseNote> notes = [];
             if (newer is not null)
             {
@@ -284,6 +298,12 @@ public sealed partial class UpdateService : ObservableObject
             return;
         }
 
+        if (OperatingSystem.IsMacOS())
+        {
+            await ReplaceMacAppAsync(installer);
+            return;
+        }
+
         Process? setup;
         try
         {
@@ -312,6 +332,28 @@ public sealed partial class UpdateService : ObservableObject
             await setup.WaitForExitAsync();
         _log.LogInformation("Installer ended with exit code {Code}", setup.ExitCode);
         Step = setup.ExitCode == 0 ? UpdateStep.Idle : UpdateStep.Cancelled;
+    }
+
+    /// <summary>
+    /// macOS: checks the app in the downloaded <paramref name="zip"/>, starts the script that swaps it in once Trasmuta
+    /// has quit, and quits. The script opens the new version.
+    /// </summary>
+    private async Task ReplaceMacAppAsync(string zip)
+    {
+        Step = UpdateStep.Installing;
+        try
+        {
+            var app = await MacAppUpdate.PrepareAsync(zip, LatestVersion!);
+            MacAppUpdate.StartSwap(app, MacAppUpdate.RunningBundle!);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or Win32Exception or InvalidOperationException
+                                       or UnauthorizedAccessException)
+        {
+            Fail("install", ex);
+            return;
+        }
+        _log.LogInformation("Replacing the app with {Version}: quitting so it can start", LatestVersion);
+        App.Quit();
     }
 
     /// <summary>
@@ -431,8 +473,12 @@ public sealed partial class UpdateService : ObservableObject
     /// <summary>A file attached to a release.</summary>
     internal sealed record ReleaseFile(string Name, string Url, long Size);
 
-    /// <summary>Picks the Windows installer and the checksum file from a GitHub release (null when missing).</summary>
-    internal static (ReleaseFile? Installer, ReleaseFile? Checksums) FindFiles(JsonElement release)
+    /// <summary>
+    /// Picks the installer (the file ending in <paramref name="installerSuffix"/>: the Windows Setup, or this Mac's zip)
+    /// and the checksum file from a GitHub release (null when missing).
+    /// </summary>
+    internal static (ReleaseFile? Installer, ReleaseFile? Checksums) FindFiles(JsonElement release,
+        string installerSuffix = WindowsInstallerSuffix)
     {
         ReleaseFile? installer = null, checksums = null;
         if (!release.TryGetProperty("assets", out var assets) || assets.ValueKind != JsonValueKind.Array)
@@ -444,7 +490,7 @@ public sealed partial class UpdateService : ObservableObject
             var size = asset.TryGetProperty("size", out var s) && s.TryGetInt64(out var bytes) ? bytes : 0;
             if (name.Length == 0 || !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                 continue;
-            if (name.EndsWith("-win-Setup.exe", StringComparison.OrdinalIgnoreCase))
+            if (name.EndsWith(installerSuffix, StringComparison.OrdinalIgnoreCase))
                 installer = new ReleaseFile(name, url, size);
             else if (name.EndsWith("-SHA256SUMS.txt", StringComparison.OrdinalIgnoreCase))
                 checksums = new ReleaseFile(name, url, size);
