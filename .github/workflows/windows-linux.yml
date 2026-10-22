@@ -91,8 +91,13 @@ jobs:
         run: dotnet test tests/Filee.App.Tests --no-build -c Release --blame-crash --blame-hang-timeout 5m --logger "console;verbosity=normal" --results-directory TestResults/app
 
       # The rest, Setup's tests included (they only run on Windows).
+      # One project at a time: started together, a test host once missed xUnit's 60-second start-up limit on a busy runner.
       - name: Test
-        run: dotnet test Filee.slnx --no-build -c Release --filter "FullyQualifiedName!~Filee.App.Tests" --logger trx --results-directory TestResults
+        run: |
+          foreach ($project in @('Filee.Core.Tests', 'Filee.Platform.Tests', 'Filee.Engines.Tests', 'Filee.Cli.Tests', 'Filee.Setup.Tests')) {
+            dotnet test "tests/$project/$project.csproj" --no-build -c Release --logger trx --results-directory TestResults
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
 
       # Setup around a stub app, run in a sandbox: install, update and uninstall into a scratch folder with a registry
       # file of its own, without administrator rights.
