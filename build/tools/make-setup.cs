@@ -21,9 +21,11 @@ if (positional.Length != 4)
     return 2;
 }
 var (program, app, version, output) = (positional[0], positional[1], positional[2], positional[3]);
-if (!File.Exists(Path.Combine(app, "Filee.exe")))
+// The app's program is called like the app (build-installer.ps1 renames Filee.exe).
+var appExe = Filee.Core.AppIdentity.Name + ".exe";
+if (!File.Exists(Path.Combine(app, appExe)))
 {
-    Console.Error.WriteLine($"Filee.exe is missing in {app}");
+    Console.Error.WriteLine($"{appExe} is missing in {app}");
     return 1;
 }
 

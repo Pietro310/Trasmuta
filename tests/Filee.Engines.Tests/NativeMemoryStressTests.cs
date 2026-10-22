@@ -45,17 +45,18 @@ public class NativeMemoryStressTests(EngineFixture fx) : IClassFixture<EngineFix
         using var stop = new CancellationTokenSource(Duration);
         var done = false;
         var compactions = 0;
-        var compactor = Task.Run(() =>
+        // Threads of their own: on the thread pool the workers' conversions could keep them from starting at all.
+        var compactor = Task.Factory.StartNew(() =>
         {
             while (!Volatile.Read(ref done))
             {
                 GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
-                compactions++;
+                Interlocked.Increment(ref compactions);
                 Thread.Sleep(20);
             }
-        }, TestContext.Current.CancellationToken);
-        var releaser = Task.Run(() =>
+        }, TestContext.Current.CancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        var releaser = Task.Factory.StartNew(() =>
         {
             while (!Volatile.Read(ref done))
             {
@@ -63,7 +64,7 @@ public class NativeMemoryStressTests(EngineFixture fx) : IClassFixture<EngineFix
                 GC.WaitForPendingFinalizers();
                 Thread.Sleep(15);
             }
-        }, TestContext.Current.CancellationToken);
+        }, TestContext.Current.CancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
         var runs = 0;
         var workers = Enumerable.Range(0, Workers).Select(worker => Task.Run(async () =>
@@ -92,7 +93,7 @@ public class NativeMemoryStressTests(EngineFixture fx) : IClassFixture<EngineFix
             await Task.WhenAll(compactor, releaser);
         }
         Assert.True(runs >= Workers * routes.Count);
-        Assert.True(compactions > 0);
+        Assert.True(Volatile.Read(ref compactions) > 0);
     }
 
     private static string Pdf(string dir)
