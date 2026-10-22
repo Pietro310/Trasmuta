@@ -64,7 +64,7 @@ nella pagina [Releases](https://github.com/Pietro310/Trasmuta/releases/latest):
 |---|---|
 | macOS | `Trasmuta-<versione>-osx-arm64.dmg` (Apple Silicon) o `-osx-x64.dmg` (Intel) |
 | Windows | `Trasmuta-<versione>-win-Setup.exe` (o `-win-Portable.zip`, senza installazione) |
-| Linux | `Trasmuta-<versione>-linux-x64.tar.gz` o `-linux-arm64.tar.gz` |
+| Linux (x64) | `Trasmuta-<versione>-linux-x64.tar.gz` |
 
 Su Mac:
 

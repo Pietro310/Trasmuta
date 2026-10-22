@@ -4,7 +4,7 @@
 #
 # Windows: the tests (Setup's too, which need Windows), the installer checked in a sandbox, then
 #   Trasmuta-<version>-win-Setup.exe (src/Filee.Setup, what the in-app update runs) and Trasmuta-<version>-win-Portable.zip.
-# Linux: Trasmuta-<version>-linux-x64.tar.gz and -linux-arm64.tar.gz, built on Ubuntu 24.04 but made to run on Ubuntu
+# Linux: Trasmuta-<version>-linux-x64.tar.gz and -linux-arm64.tar.gz (the caller can leave ARM64 out: linux-arm64), built on Ubuntu 24.04 but made to run on Ubuntu
 #   22.04 (glibc 2.35). rhwp's Linux release needs a newer glibc, so it is built from pinned source on Ubuntu 22.04 first
 #   (linux-native, build/build-linux-native.py) and replaces the download in the package. Every ELF file in a package is
 #   checked against glibc 2.35, and the packages are unpacked, run and started on Ubuntu 22.04.
@@ -18,6 +18,10 @@ on:
         type: string
         default: ''
         required: false
+      linux-arm64:
+        description: 'Also build and check the Linux ARM64 package'
+        type: boolean
+        default: true
   workflow_dispatch:
     inputs:
       version:
@@ -135,12 +139,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - runner: ubuntu-22.04
-            rid: linux-x64
-          - runner: ubuntu-22.04-arm
-            rid: linux-arm64
-    runs-on: ${{ matrix.runner }}
+        rid: ${{ fromJSON(format('{0}', inputs.linux-arm64) == 'false' && '["linux-x64"]' || '["linux-x64", "linux-arm64"]') }}
+    runs-on: ${{ matrix.rid == 'linux-arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     timeout-minutes: 90
     defaults:
       run:
@@ -205,12 +205,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - runner: ubuntu-24.04
-            rid: linux-x64
-          - runner: ubuntu-24.04-arm
-            rid: linux-arm64
-    runs-on: ${{ matrix.runner }}
+        rid: ${{ fromJSON(format('{0}', inputs.linux-arm64) == 'false' && '["linux-x64"]' || '["linux-x64", "linux-arm64"]') }}
+    runs-on: ${{ matrix.rid == 'linux-arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     timeout-minutes: 60
     defaults:
       run:
@@ -313,12 +309,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - runner: ubuntu-22.04
-            rid: linux-x64
-          - runner: ubuntu-22.04-arm
-            rid: linux-arm64
-    runs-on: ${{ matrix.runner }}
+        rid: ${{ fromJSON(format('{0}', inputs.linux-arm64) == 'false' && '["linux-x64"]' || '["linux-x64", "linux-arm64"]') }}
+    runs-on: ${{ matrix.rid == 'linux-arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     timeout-minutes: 30
     defaults:
       run:

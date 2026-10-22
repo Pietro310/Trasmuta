@@ -4,7 +4,8 @@
 |---|---|
 | **macOS 13 o successivo** — Apple Silicon (M1, M2, M3, M4, …) e Intel | ✅ Sì |
 | **Windows 10 (1809) / 11** — x64 | ✅ Sì, dalla 1.0.4 |
-| **Linux** — x64 e ARM64, Ubuntu 22.04 o successivo (glibc 2.35) | ✅ Sì, dalla 1.0.4 |
+| **Linux** — x64, Ubuntu 22.04 o successivo (glibc 2.35) | ✅ Sì, dalla 1.0.4 |
+| **Linux** — ARM64 | ⏳ In arrivo |
 
 Vai a: [macOS](#macos) · [Windows](#windows) · [Linux](#linux) · [Aggiornare](#aggiornare) ·
 [Disinstallare](#disinstallare)
@@ -103,8 +104,8 @@ principale, la voce è in **Mostra altre opzioni**).
 ### 1. Scarica
 
 Dalla pagina **https://github.com/Pietro310/Trasmuta/releases/latest** scarica `Trasmuta-<versione>-linux-x64.tar.gz`
-(PC Intel/AMD) o `Trasmuta-<versione>-linux-arm64.tar.gz` (ARM a 64 bit). Se non sai quale, nel terminale `uname -m`
-risponde `x86_64` (→ x64) o `aarch64` (→ arm64).
+(PC Intel/AMD: nel terminale `uname -m` risponde `x86_64`). La versione per ARM a 64 bit (`aarch64`) non è ancora
+pubblicata.
 
 ### 2. Installa le librerie di sistema
 

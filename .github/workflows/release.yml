@@ -1,8 +1,8 @@
 # Builds Trasmuta for every system and, for a version tag (v1.2.3), publishes a GitHub Release with:
 #   macOS (Apple Silicon and Intel): a .dmg (first installs: drag the app onto Applications) and a zip (what the
 #     in-app update downloads), built here;
-#   Windows: Trasmuta-<version>-win-Setup.exe and the portable zip; Linux: tar.gz for x64 and arm64 (built and tested
-#     by windows-linux.yml);
+#   Windows: Trasmuta-<version>-win-Setup.exe and the portable zip; Linux: tar.gz for x64 (built and tested by
+#     windows-linux.yml; ARM64 is left out for now, see the windows-linux job);
 #   Trasmuta-<version>-SHA256SUMS.txt with the checksums of all of them.
 # The app's update check (UpdateService) reads that release: its text is the version's section of CHANGELOG.md,
 # including the hidden "<!-- update" block that sets how insistent the notice is. Nothing is published unless every
@@ -78,6 +78,9 @@ jobs:
     uses: ./.github/workflows/windows-linux.yml
     with:
       version: ${{ needs.plan.outputs.tag }}
+      # Not released for now: on Ubuntu 22.04 ARM the app sometimes doesn't finish exiting after Quit (the launch
+      # check catches it). Pushes to wip/ branches still build and check it.
+      linux-arm64: false
 
   build:
     strategy:
